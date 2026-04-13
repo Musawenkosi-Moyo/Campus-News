@@ -17,6 +17,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
+        freeCompilerArgs = listOf("-Xno-param-assertions", "-Xno-receiver-assertions", "-Xno-call-assertions")
     }
 
     defaultConfig {
