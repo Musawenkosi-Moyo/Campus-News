@@ -1,7 +1,29 @@
-{
+﻿{
   "project_info": {
-    "project_number": "1234567890",
-    "project_id": "dummy-project"
+    "project_number": "915245993683",
+    "project_id": "campus-165e0",
+    "storage_bucket": "campus-165e0.firebasestorage.app"
   },
-  "client": []
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:915245993683:android:f886e77abf948f3fc50e26",
+        "android_client_info": {
+          "package_name": "com.example.campus_news"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASkli3SmSBq7ROP0ET6y13vtys_d741T8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
 }

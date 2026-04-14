@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:newsfeed_flutter/design/colors.dart';
-import 'package:newsfeed_flutter/screens/login_screen.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:campus_news/design/colors.dart';
+import 'package:campus_news/screens/login_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
