@@ -1,4 +1,4 @@
-# newsfeed_flutter
+﻿# campus_news
 
 A new Flutter project.
 

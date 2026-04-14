@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'home_screen.dart';
-import 'signup_screen.dart';
-import 'admin_login_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'admin_dashboard_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class AdminLoginScreen extends StatefulWidget {
+  const AdminLoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -24,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _signIn() async {
+  Future<void> _adminSignIn() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -38,22 +37,54 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance
+      // 1. Authenticate with Firebase Auth
+      final credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
 
+      final uid = credential.user!.uid;
+
+      // 2. Look up the user's role in Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      final role = doc.data()?['role'] ?? 'user';
+
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+
+      if (role == 'admin') {
+        // 3. Admin confirmed — go to dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+        );
+      } else {
+        // 4. Not an admin — sign them out and show error
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Access Denied'),
+            content: const Text(
+              'You do not have administrative privileges. Please contact your system administrator.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK', style: TextStyle(color: Colors.redAccent)),
+              ),
+            ],
+          ),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed. Please try again.';
       if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
         message = 'Incorrect email or password.';
       } else if (e.code == 'invalid-email') {
         message = 'Please enter a valid email address.';
-      } else if (e.code == 'user-disabled') {
-        message = 'This account has been disabled.';
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,19 +98,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final topHeight =
-        size.height * 0.30; // Increased a bit from 1/4 (0.25 -> 0.30)
+    final topHeight = size.height * 0.30;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top part with overlapping logo
+            // Top part
             SizedBox(
-              height:
-                  topHeight +
-                  65, // Add space for the protruding half of the logo
+              height: topHeight + 65,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.topCenter,
@@ -88,23 +116,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: topHeight,
                     width: double.infinity,
                     decoration: const BoxDecoration(
-                      color: AppColors.primary,
+                      color: Colors.redAccent, // Differentiating logic for Admin
                       borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(20.0), // Reduced radius
-                        bottomRight: Radius.circular(20.0), // Reduced radius
+                        bottomLeft: Radius.circular(20.0),
+                        bottomRight: Radius.circular(20.0),
                       ),
                     ),
                   ),
                   Positioned(
-                    top:
-                        topHeight -
-                        65, // Keeps it perfectly centered on the boundary
+                    top: topHeight - 65,
                     child: Container(
                       width: 130,
                       height: 130,
                       decoration: const BoxDecoration(
-                        color: AppColors
-                            .primary, // Merges smoothly with the top container
+                        color: Colors.redAccent,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -115,26 +140,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(
-                          2.0,
-                        ), // Exactly 2px blue border around the logo
+                        padding: const EdgeInsets.all(4.0),
                         child: ClipOval(
                           child: Container(
                             color: Colors.white,
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.cover,
+                            child: const Icon(
+                              Icons.admin_panel_settings,
+                              size: 80,
+                              color: Colors.redAccent,
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
+                  Positioned(
+                    top: 40,
+                    left: 8,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            // Bottom part with form
+            // Bottom part
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 24.0,
@@ -144,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Welcome Back',
+                    'Admin Portal',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -154,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Sign in to catch up on campus news.',
+                    'Sign in to manage news and updates.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
@@ -163,18 +195,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _emailController,
                     style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'Admin Email',
                       labelStyle: const TextStyle(color: Colors.black54),
                       prefixIcon: const Icon(
                         Icons.email,
-                        color: AppColors.primary,
+                        color: Colors.redAccent,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: const BorderSide(color: Colors.black12),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary),
+                        borderSide: const BorderSide(color: Colors.redAccent),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
@@ -191,14 +223,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       labelStyle: const TextStyle(color: Colors.black54),
                       prefixIcon: const Icon(
                         Icons.lock,
-                        color: AppColors.primary,
+                        color: Colors.redAccent,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: const BorderSide(color: Colors.black12),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary),
+                        borderSide: const BorderSide(color: Colors.redAccent),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
@@ -208,10 +240,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _signIn,
+                    onPressed: _isLoading ? null : _adminSignIn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -227,42 +259,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : const Text(
-                            'Login',
+                            'Admin Login',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Don\'t have an account? Sign up',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdminLoginScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Are you an Admin? Sign in here',
-                      style: TextStyle(color: Colors.black54),
-                    ),
                   ),
                 ],
               ),
