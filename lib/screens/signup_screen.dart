@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'login_screen.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _selectedRole = 'user'; // Default role
   bool _isLoading = false;
+
+  final List<String> _roles = ['user', 'admin', 'registra'];
 
   @override
   void dispose() {
@@ -27,7 +31,7 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  Future<void> _signUp() async {
+  Future<void> _registerUser() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
@@ -42,241 +46,217 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _isLoading = true);
 
+    FirebaseApp? tempApp;
     try {
-      // 1. Create user in Firebase Auth
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
+      // 1. Initialize or get the secondary Firebase App instance
+      try {
+        tempApp = Firebase.app('SecondaryApp');
+      } catch (e) {
+        tempApp = await Firebase.initializeApp(
+          name: 'SecondaryApp',
+          options: Firebase.app().options,
+        );
+      }
+
+      final tempAuth = FirebaseAuth.instanceFor(app: tempApp);
+      
+      // 2. Create user in Firebase Auth via secondary app
+      final credential = await tempAuth.createUserWithEmailAndPassword(
+          email: email, password: password);
 
       final uid = credential.user!.uid;
 
-      // 2. Save profile to Firestore users collection
+      // 3. Save profile to Firestore users collection using the main instance
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'name': name,
         'email': email,
         'phone': phone,
-        'role': 'user',
+        'role': _selectedRole,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
 
-      // 3. Navigate to home
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Successfully registered $name as $_selectedRole')),
       );
+
+      // Clear fields for next registration
+      _nameController.clear();
+      _emailController.clear();
+      _phoneController.clear();
+      _passwordController.clear();
+      
     } on FirebaseAuthException catch (e) {
-      String message = 'Sign up failed. Please try again.';
+      String message = 'Registration failed. Please try again.';
       if (e.code == 'email-already-in-use') {
         message = 'This email is already registered.';
       } else if (e.code == 'weak-password') {
         message = 'Password must be at least 6 characters.';
       } else if (e.code == 'invalid-email') {
         message = 'Please enter a valid email address.';
+      } else if (e.code == 'permission-denied') {
+        message = 'Permission Denied: Ensure your Firestore rules are updated.';
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     } finally {
+      // 4. Always clean up the secondary app if it was created
+      if (tempApp != null) {
+        await tempApp.delete().catchError((_) {});
+      }
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final topHeight = size.height * 0.30;
+    final topHeight = size.height * 0.25;
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Registrar Portal'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+        actions: [
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top part with overlapping logo
-            SizedBox(
-              height: topHeight + 65, // Add space for the protruding half of the logo
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
+            // Top part with logo
+            Container(
+              height: topHeight,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32.0),
+                  bottomRight: Radius.circular(32.0),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    height: topHeight,
-                    width: double.infinity,
+                    width: 80,
+                    height: 80,
                     decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(20.0),
-                        bottomRight: Radius.circular(20.0),
-                      ),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.asset('assets/logo.png', fit: BoxFit.contain),
                     ),
                   ),
-                  Positioned(
-                    top: topHeight - 65,
-                    child: Container(
-                      width: 130,
-                      height: 130,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(2.0),
-                        child: ClipOval(
-                          child: Container(
-                            color: Colors.white,
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Back button
-                  Positioned(
-                    top: 40,
-                    left: 8,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: AppColors.onPrimary),
-                      onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Create New Account',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onPrimary,
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Bottom part with form
+            // Form part
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 32.0,
-              ),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Create Account',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onBackground,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Join us to get the latest campus updates.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 32),
                   TextField(
                     controller: _nameController,
-                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: 'Full Name',
-                      labelStyle: const TextStyle(color: Colors.black54),
-                      prefixIcon: const Icon(
-                        Icons.person,
-                        color: AppColors.primary,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.surface,
+                      prefixIcon: const Icon(Icons.person, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _phoneController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelText: 'Phone Number',
-                      labelStyle: const TextStyle(color: Colors.black54),
-                      prefixIcon: const Icon(
-                        Icons.phone,
-                        color: AppColors.primary,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.surface,
-                    ),
-                    keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _emailController,
-                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: const TextStyle(color: Colors.black54),
-                      prefixIcon: const Icon(
-                        Icons.email,
-                        color: AppColors.primary,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.surface,
+                      labelText: 'Email Address',
+                      prefixIcon: const Icon(Icons.email, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: _passwordController,
-                    style: const TextStyle(color: Colors.black87),
+                    controller: _phoneController,
                     decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: const TextStyle(color: Colors.black54),
-                      prefixIcon: const Icon(
-                        Icons.lock,
-                        color: AppColors.primary,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.surface,
+                      labelText: 'Phone Number',
+                      prefixIcon: const Icon(Icons.phone, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Temporary Password',
+                      prefixIcon: const Icon(Icons.lock, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     obscureText: true,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  
+                  // Role Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedRole,
+                    decoration: InputDecoration(
+                      labelText: 'User Role',
+                      prefixIcon: const Icon(Icons.badge, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: _roles.map((role) {
+                      return DropdownMenuItem(
+                        value: role,
+                        child: Text(role.toUpperCase()),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedRole = value);
+                      }
+                    },
+                  ),
+                  
+                  const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _signUp,
+                    onPressed: _isLoading ? null : _registerUser,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.onPrimary,
@@ -286,31 +266,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
+                        ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            'Register User',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Already have an account? Login',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
                   ),
                 ],
               ),
@@ -321,3 +281,4 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
+

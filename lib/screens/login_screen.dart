@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_screen.dart';
-import 'signup_screen.dart';
-import 'admin_login_screen.dart';
+import 'signup_screen.dart'; // This is now RegisterScreen internally
+import 'admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,14 +39,43 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance
+      // 1. Authenticate
+      final credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
 
+      final uid = credential.user!.uid;
+
+      // 2. Fetch role from Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (!doc.exists) {
+        throw Exception("User data not found.");
+      }
+
+      final role = doc.data()?['role'] ?? 'user';
+
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+
+      // 3. Redirect based on role
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+        );
+      } else if (role == 'registra') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed. Please try again.';
       if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
@@ -59,6 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -67,8 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final topHeight =
-        size.height * 0.30; // Increased a bit from 1/4 (0.25 -> 0.30)
+    final topHeight = size.height * 0.30;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -77,9 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             // Top part with overlapping logo
             SizedBox(
-              height:
-                  topHeight +
-                  65, // Add space for the protruding half of the logo
+              height: topHeight + 65,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.topCenter,
@@ -90,21 +122,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(20.0), // Reduced radius
-                        bottomRight: Radius.circular(20.0), // Reduced radius
+                        bottomLeft: Radius.circular(20.0),
+                        bottomRight: Radius.circular(20.0),
                       ),
                     ),
                   ),
                   Positioned(
-                    top:
-                        topHeight -
-                        65, // Keeps it perfectly centered on the boundary
+                    top: topHeight - 65,
                     child: Container(
                       width: 130,
                       height: 130,
                       decoration: const BoxDecoration(
-                        color: AppColors
-                            .primary, // Merges smoothly with the top container
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -115,9 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(
-                          2.0,
-                        ), // Exactly 2px blue border around the logo
+                        padding: const EdgeInsets.all(2.0),
                         child: ClipOval(
                           child: Container(
                             color: Colors.white,
@@ -154,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Sign in to catch up on campus news.',
+                    'Sign in with your campus credentials.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
@@ -206,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     obscureText: true,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 48),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
@@ -234,36 +261,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Don\'t have an account? Sign up',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdminLoginScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Are you an Admin? Sign in here',
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -273,3 +270,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
