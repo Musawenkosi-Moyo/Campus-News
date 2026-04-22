@@ -20,4 +20,8 @@ class AppColors {
 
   // Error
   static const Color error = Colors.redAccent;
+
+  // Navigation
+  static const Color navBarBackground = Colors.white;
+  static const Color navUnselected = Color(0xFF9E9E9E);
 }
