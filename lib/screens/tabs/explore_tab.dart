@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
+import 'package:campus_news/screens/category_results _screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Add this
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -14,11 +15,14 @@ class _ExploreTabState extends State<ExploreTab> {
   final TextEditingController _searchController = TextEditingController();
 
   // Function to navigate to a category-specific screen
-  void _navigateToCategory(String categoryName) {
-    //TODO: Create a CategoryResultsScreen
-
-    print("Navigating to $categoryName news...");
-  }
+ void _navigateToCategory(BuildContext context, String categoryName) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CategoryResultsScreen(category: categoryName),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -86,25 +90,25 @@ class _ExploreTabState extends State<ExploreTab> {
                 icon: Icons.school_rounded,
                 label: 'Academics',
                 color: const Color(0xFF4CAF50),
-                onTap: () => _navigateToCategory('Academics'),
+                onTap: () => _navigateToCategory(context, 'Academics'),
               ),
               _CategoryCard(
                 icon: Icons.sports_soccer_rounded,
                 label: 'Sports',
                 color: const Color(0xFFFF9800),
-                onTap: () => _navigateToCategory('Sports'),
+                onTap: () => _navigateToCategory(context, 'Sports'),
               ),
               _CategoryCard(
                 icon: Icons.celebration_rounded,
                 label: 'Events',
                 color: const Color(0xFF9C27B0),
-                onTap: () => _navigateToCategory('Events'),
+                onTap: () => _navigateToCategory(context, 'Events'),
               ),
               _CategoryCard(
                 icon: Icons.groups_rounded,
                 label: 'Clubs',
                 color: const Color(0xFF2196F3),
-                onTap: () => _navigateToCategory('Clubs'),
+                onTap: () => _navigateToCategory(context, 'Clubs'),
               ),
             ],
           ),
