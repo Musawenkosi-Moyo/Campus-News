@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Add this
 
-class ExploreTab extends StatelessWidget {
+class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
+
+  @override
+  State<ExploreTab> createState() => _ExploreTabState();
+}
+
+class _ExploreTabState extends State<ExploreTab> {
+  final TextEditingController _searchController = TextEditingController();
+
+  // Function to navigate to a category-specific screen
+  void _navigateToCategory(String categoryName) {
+    //TODO: Create a CategoryResultsScreen
+
+    print("Navigating to $categoryName news...");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +27,7 @@ class ExploreTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search bar
+          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
@@ -24,13 +39,14 @@ class ExploreTab extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.search_rounded,
-                  color: AppColors.navUnselected,
-                ),
+                Icon(Icons.search_rounded, color: AppColors.navUnselected),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
+                    controller: _searchController,
+                    onSubmitted: (value) {
+                      // Trigger search logic here
+                    },
                     decoration: InputDecoration(
                       hintText: 'Search campus news...',
                       hintStyle: GoogleFonts.inter(
@@ -47,7 +63,7 @@ class ExploreTab extends StatelessWidget {
           ),
           const SizedBox(height: 28),
 
-          // Categories header
+          // 2. Categories
           Text(
             'Categories',
             style: GoogleFonts.inter(
@@ -58,7 +74,6 @@ class ExploreTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Category grid
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
@@ -66,42 +81,36 @@ class ExploreTab extends StatelessWidget {
             mainAxisSpacing: 14,
             crossAxisSpacing: 14,
             childAspectRatio: 1.4,
-            children: const [
+            children: [
               _CategoryCard(
                 icon: Icons.school_rounded,
                 label: 'Academics',
-                color: Color(0xFF4CAF50),
+                color: const Color(0xFF4CAF50),
+                onTap: () => _navigateToCategory('Academics'),
               ),
               _CategoryCard(
                 icon: Icons.sports_soccer_rounded,
                 label: 'Sports',
-                color: Color(0xFFFF9800),
+                color: const Color(0xFFFF9800),
+                onTap: () => _navigateToCategory('Sports'),
               ),
               _CategoryCard(
                 icon: Icons.celebration_rounded,
                 label: 'Events',
-                color: Color(0xFF9C27B0),
+                color: const Color(0xFF9C27B0),
+                onTap: () => _navigateToCategory('Events'),
               ),
               _CategoryCard(
                 icon: Icons.groups_rounded,
                 label: 'Clubs',
-                color: Color(0xFF2196F3),
-              ),
-              _CategoryCard(
-                icon: Icons.science_rounded,
-                label: 'Research',
-                color: Color(0xFFE91E63),
-              ),
-              _CategoryCard(
-                icon: Icons.work_rounded,
-                label: 'Careers',
-                color: Color(0xFF009688),
+                color: const Color(0xFF2196F3),
+                onTap: () => _navigateToCategory('Clubs'),
               ),
             ],
           ),
           const SizedBox(height: 28),
 
-          // Trending section
+          //Trending Topics (Connected to Firebase)
           Text(
             'Trending Topics',
             style: GoogleFonts.inter(
@@ -112,26 +121,51 @@ class ExploreTab extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          Center(
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Icon(
-                  Icons.trending_up_rounded,
-                  size: 48,
-                  color: AppColors.primary.withAlpha(100),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Trending stories will appear here',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.navUnselected,
-                  ),
-                ),
-              ],
-            ),
+          // StreamBuilder listens to Firestore articles ordered by "views"
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('articles')
+                .orderBy('views', descending: true)
+                .limit(5)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return _buildEmptyTrending();
+              }
+
+              return Column(
+                children: snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.trending_up, color: Colors.redAccent),
+                    title: Text(data['title'] ?? 'No Title', 
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                    subtitle: Text("${data['views']} students reading"),
+                    onTap: () {
+                      // Navigate to article detail
+                    },
+                  );
+                }).toList(),
+              );
+            },
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyTrending() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Icon(Icons.trending_up_rounded, size: 48, color: AppColors.primary.withAlpha(100)),
+          const SizedBox(height: 12),
+          Text('No trending stories yet', style: GoogleFonts.inter(color: AppColors.navUnselected)),
         ],
       ),
     );
@@ -142,45 +176,49 @@ class _CategoryCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final VoidCallback onTap;
 
   const _CategoryCard({
     required this.icon,
     required this.label,
     required this.color,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: color.withAlpha(40),
+    return InkWell( 
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withAlpha(20),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: color.withAlpha(40)),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withAlpha(35),
-              borderRadius: BorderRadius.circular(14),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withAlpha(35),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.onBackground,
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.onBackground,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
