@@ -7,6 +7,57 @@ import 'package:campus_news/screens/login_screen.dart';
 class SettingsTab extends StatelessWidget {
   const SettingsTab({super.key});
 
+  void _navigateTo(BuildContext context, Widget screen) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => screen),
+    );
+  }
+
+ 
+  void _handleEditProfile(BuildContext context) async {
+    
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    );
+    (context as Element).markNeedsBuild(); 
+  }
+
+  void _handleNotifications(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Notification settings coming soon!')),
+    );
+  }
+
+  void _handleAppearance(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Select Theme', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.wb_sunny_outlined),
+              title: const Text('Light Mode'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.nightlight_round),
+              title: const Text('Dark Mode'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   Future<void> _logout(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -66,59 +117,67 @@ class SettingsTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
         children: [
-          // Profile card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.primary.withAlpha(20),
+          
+          InkWell(
+            onTap: () => _handleEditProfile(context), 
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withAlpha(20),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: AppColors.primary.withAlpha(30),
-                  child: Text(
-                    (user?.displayName ?? user?.email ?? 'U')
-                        .substring(0, 1)
-                        .toUpperCase(),
-                    style: GoogleFonts.inter(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: AppColors.primary.withAlpha(30),
+                    child: Text(
+                      (user?.displayName ?? user?.email ?? 'U')
+                          .substring(0, 1)
+                          .toUpperCase(),
+                      style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.displayName ?? 'Student',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onBackground,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.displayName ?? 'Student',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.onBackground,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        user?.email ?? 'No email',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: AppColors.navUnselected,
+                        const SizedBox(height: 2),
+                        Text(
+                          user?.email ?? 'No email',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppColors.navUnselected,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.navUnselected,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -130,23 +189,17 @@ class SettingsTab extends StatelessWidget {
               _SettingsItem(
                 icon: Icons.person_outline_rounded,
                 label: 'Edit Profile',
-                onTap: () {
-                  // TODO: Navigate to edit profile
-                },
+                onTap: () => _handleEditProfile(context), // UPDATED
               ),
               _SettingsItem(
                 icon: Icons.notifications_outlined,
                 label: 'Notifications',
-                onTap: () {
-                  // TODO: Navigate to notifications settings
-                },
+                onTap: () => _handleNotifications(context), // UPDATED
               ),
               _SettingsItem(
                 icon: Icons.dark_mode_outlined,
                 label: 'Appearance',
-                onTap: () {
-                  // TODO: Navigate to appearance settings
-                },
+                onTap: () => _handleAppearance(context), // UPDATED
               ),
             ],
           ),
@@ -159,14 +212,19 @@ class SettingsTab extends StatelessWidget {
                 icon: Icons.help_outline_rounded,
                 label: 'Help & FAQ',
                 onTap: () {
-                  // TODO: Navigate to help
+                  // Logic for Help
                 },
               ),
               _SettingsItem(
                 icon: Icons.info_outline_rounded,
                 label: 'About',
                 onTap: () {
-                  // TODO: Navigate to about
+                  showAboutDialog(
+                    context: context,
+                    applicationName: 'Campus News',
+                    applicationVersion: '1.0.0',
+                    applicationIcon: const FlutterLogo(),  
+                  );
                 },
               ),
             ],
@@ -327,6 +385,28 @@ class _SettingsItem extends StatelessWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+      ),
+    );
+  }
+}
+
+class EditProfileScreen extends StatelessWidget {
+  const EditProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Edit Profile",
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: Center(
+        child: Text(
+          "Profile Settings Screen",
+          style: GoogleFonts.inter(fontSize: 16),
+        ),
       ),
     );
   }
