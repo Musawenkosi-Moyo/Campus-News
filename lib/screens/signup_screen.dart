@@ -126,6 +126,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  InputDecoration _inputStyle(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: AppColors.primary),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.primary.withAlpha(100)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      filled: false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -195,40 +211,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   TextField(
                     controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: const Icon(Icons.person, color: AppColors.primary),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    decoration: _inputStyle('Full Name', Icons.person),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email Address',
-                      prefixIcon: const Icon(Icons.email, color: AppColors.primary),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    decoration: _inputStyle('Email Address', Icons.email),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _phoneController,
-                    decoration: InputDecoration(
-                      labelText: 'Phone Number',
-                      prefixIcon: const Icon(Icons.phone, color: AppColors.primary),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    decoration: _inputStyle('Phone Number', Icons.phone),
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Temporary Password',
-                      prefixIcon: const Icon(Icons.lock, color: AppColors.primary),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    decoration: _inputStyle('Temporary Password', Icons.lock),
                     obscureText: true,
                   ),
                   const SizedBox(height: 16),
@@ -236,11 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Role Dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedRole,
-                    decoration: InputDecoration(
-                      labelText: 'User Role',
-                      prefixIcon: const Icon(Icons.badge, color: AppColors.primary),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    decoration: _inputStyle('User Role', Icons.badge),
                     items: _roles.map((role) {
                       return DropdownMenuItem(
                         value: role,
@@ -281,4 +277,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
