@@ -40,8 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       // 1. Authenticate
-      final credential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
       final uid = credential.user!.uid;
 
@@ -73,7 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed. Please try again.';
-      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
         message = 'Incorrect email or password.';
       } else if (e.code == 'invalid-email') {
         message = 'Please enter a valid email address.';
@@ -81,14 +85,14 @@ class _LoginScreenState extends State<LoginScreen> {
         message = 'This account has been disabled.';
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -100,59 +104,44 @@ class _LoginScreenState extends State<LoginScreen> {
     final topHeight = size.height * 0.30;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
             // Top part with overlapping logo
-            SizedBox(
-              height: topHeight + 65,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
-                children: [
-                  Container(
-                    height: topHeight,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(20.0),
-                        bottomRight: Radius.circular(20.0),
+            Container(
+              height: topHeight,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32.0),
+                  bottomRight: Radius.circular(32.0),
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(30),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
                       ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Image.asset(
+                      'assets/nust.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  Positioned(
-                    top: topHeight - 65,
-                    child: Container(
-                      width: 130,
-                      height: 130,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: ClipOval(
-                          child: Container(
-                            color: Colors.white,
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
 
@@ -160,13 +149,13 @@ class _LoginScreenState extends State<LoginScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 24.0,
-                vertical: 32.0,
+                vertical: 24.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Welcome Back',
+                    'Welcome',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -180,53 +169,91 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
-                  const SizedBox(height: 48),
-                  TextField(
-                    controller: _emailController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: const TextStyle(color: Colors.black54),
-                      prefixIcon: const Icon(
-                        Icons.email,
-                        color: AppColors.primary,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.primary.withAlpha(100)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: false,
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Email',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onBackground,
                     ),
-                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primary.withAlpha(40)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _emailController,
+                      style: const TextStyle(color: Colors.black87),
+                      decoration: InputDecoration(
+                        hintText: 'Email',
+                        hintStyle: const TextStyle(color: Colors.black54),
+                        prefixIcon: const Icon(
+                          Icons.email,
+                          color: AppColors.primary,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: const TextStyle(color: Colors.black54),
-                      prefixIcon: const Icon(
-                        Icons.lock,
-                        color: AppColors.primary,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.primary.withAlpha(100)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: false,
+                  const Text(
+                    'Password',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onBackground,
                     ),
-                    obscureText: true,
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primary.withAlpha(40)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _passwordController,
+                      style: const TextStyle(color: Colors.black87),
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        hintStyle: const TextStyle(color: Colors.black54),
+                        prefixIcon: const Icon(
+                          Icons.lock,
+                          color: AppColors.primary,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      obscureText: true,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
@@ -266,7 +293,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const SignupScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
+                            ),
                           );
                         },
                         child: const Text(
@@ -288,4 +317,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
