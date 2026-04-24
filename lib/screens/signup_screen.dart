@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'home_screen.dart';
+import 'admin_dashboard_screen.dart';
 import 'login_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedRole = 'user'; // Default role
   bool _isLoading = false;
-
-  final List<String> _roles = ['user', 'admin', 'registra'];
 
   @override
   void dispose() {
@@ -37,6 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
 
+    // 1. Basic validation
     if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields.')),
@@ -44,49 +43,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // 2. Domain validation
+    if (!email.toLowerCase().endsWith('.nust.ac.zw')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your NUST email...')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    FirebaseApp? tempApp;
     try {
-      // 1. Initialize or get the secondary Firebase App instance
-      try {
-        tempApp = Firebase.app('SecondaryApp');
-      } catch (e) {
-        tempApp = await Firebase.initializeApp(
-          name: 'SecondaryApp',
-          options: Firebase.app().options,
-        );
+      // 3. Determine role based on domain
+      String role = 'user';
+      if (email.toLowerCase().endsWith('@admin.nust.ac.zw')) {
+        role = 'admin';
+      } else if (email.toLowerCase().endsWith('@students.nust.ac.zw')) {
+        role = 'user';
       }
 
-      final tempAuth = FirebaseAuth.instanceFor(app: tempApp);
-      
-      // 2. Create user in Firebase Auth via secondary app
-      final credential = await tempAuth.createUserWithEmailAndPassword(
+      // 4. Create user in Firebase Auth
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: email, password: password);
 
       final uid = credential.user!.uid;
 
-      // 3. Save profile to Firestore users collection using the main instance
+      // 5. Save profile to Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'name': name,
         'email': email,
         'phone': phone,
-        'role': _selectedRole,
+        'role': role,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Successfully registered $name as $_selectedRole')),
-      );
-
-      // Clear fields for next registration
-      _nameController.clear();
-      _emailController.clear();
-      _phoneController.clear();
-      _passwordController.clear();
+      // 6. Redirect based on role
+      if (role == 'admin') {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
+      }
       
     } on FirebaseAuthException catch (e) {
       String message = 'Registration failed. Please try again.';
@@ -96,8 +101,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         message = 'Password must be at least 6 characters.';
       } else if (e.code == 'invalid-email') {
         message = 'Please enter a valid email address.';
-      } else if (e.code == 'permission-denied') {
-        message = 'Permission Denied: Ensure your Firestore rules are updated.';
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,26 +112,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
     } finally {
-      // 4. Always clean up the secondary app if it was created
-      if (tempApp != null) {
-        await tempApp.delete().catchError((_) {});
-      }
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (route) => false,
-    );
   }
 
   InputDecoration _inputStyle(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
+      labelStyle: const TextStyle(color: Colors.black54),
       prefixIcon: Icon(icon, color: AppColors.primary),
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: AppColors.primary.withAlpha(100)),
@@ -149,18 +140,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Registrar Portal'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        actions: [
-          IconButton(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -192,7 +171,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Create New Account',
+                    'Create Account',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -209,45 +188,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text(
+                    'Sign up with your NUST email to access campus news.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 24),
                   TextField(
                     controller: _nameController,
+                    style: const TextStyle(color: Colors.black87),
                     decoration: _inputStyle('Full Name', Icons.person),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _emailController,
-                    decoration: _inputStyle('Email Address', Icons.email),
+                    style: const TextStyle(color: Colors.black87),
+                    decoration: _inputStyle('NUST Email Address', Icons.email),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _phoneController,
+                    style: const TextStyle(color: Colors.black87),
                     decoration: _inputStyle('Phone Number', Icons.phone),
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _passwordController,
-                    decoration: _inputStyle('Temporary Password', Icons.lock),
+                    style: const TextStyle(color: Colors.black87),
+                    decoration: _inputStyle('Password', Icons.lock),
                     obscureText: true,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Role Dropdown
-                  DropdownButtonFormField<String>(
-                    value: _selectedRole,
-                    decoration: _inputStyle('User Role', Icons.badge),
-                    items: _roles.map((role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(role.toUpperCase()),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedRole = value);
-                      }
-                    },
                   ),
                   
                   const SizedBox(height: 32),
@@ -262,11 +233,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text(
-                            'Register User',
+                            'Sign Up',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Already have an account?",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

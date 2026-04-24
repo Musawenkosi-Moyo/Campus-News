@@ -3,7 +3,7 @@ import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_screen.dart';
-import 'signup_screen.dart'; // This is now RegisterScreen internally
+import 'signup_screen.dart';
 import 'admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -64,11 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-        );
-      } else if (role == 'registra') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const RegisterScreen()),
         );
       } else {
         Navigator.pushReplacement(
@@ -258,6 +253,31 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Don't have an account?",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SignupScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
