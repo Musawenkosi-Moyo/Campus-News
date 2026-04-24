@@ -116,20 +116,42 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  InputDecoration _inputStyle(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(color: Colors.black54),
-      prefixIcon: Icon(icon, color: AppColors.primary),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: AppColors.primary.withAlpha(100)),
+  Widget _buildFloatingField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withAlpha(40)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withAlpha(15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
-        borderRadius: BorderRadius.circular(12),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.black87),
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.black54),
+          prefixIcon: Icon(icon, color: AppColors.primary),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+        ),
       ),
-      filled: false,
     );
   }
 
@@ -139,7 +161,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final topHeight = size.height * 0.25;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -154,31 +176,29 @@ class _SignupScreenState extends State<SignupScreen> {
                   bottomRight: Radius.circular(32.0),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image.asset('assets/logo.png', fit: BoxFit.contain),
+              child: Center(
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(30),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Image.asset(
+                      'assets/nust.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onPrimary,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
 
@@ -189,35 +209,81 @@ class _SignupScreenState extends State<SignupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
+                    'Create Account',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
                     'Sign up with your NUST email to access campus news.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
-                  TextField(
+                  const Text(
+                    'Full Name',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildFloatingField(
                     controller: _nameController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: _inputStyle('Full Name', Icons.person),
+                    hint: 'Full Name',
+                    icon: Icons.person,
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  const Text(
+                    'NUST Email Address',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildFloatingField(
                     controller: _emailController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: _inputStyle('NUST Email Address', Icons.email),
+                    hint: 'NUST Email Address',
+                    icon: Icons.email,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  const Text(
+                    'Phone Number',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildFloatingField(
                     controller: _phoneController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: _inputStyle('Phone Number', Icons.phone),
+                    hint: 'Phone Number',
+                    icon: Icons.phone,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  const Text(
+                    'Password',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildFloatingField(
                     controller: _passwordController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: _inputStyle('Password', Icons.lock),
+                    hint: 'Password',
+                    icon: Icons.lock,
                     obscureText: true,
                   ),
                   
