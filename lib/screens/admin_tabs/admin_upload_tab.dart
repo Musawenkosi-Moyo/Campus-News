@@ -82,26 +82,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
       String? imageUrl;
       if (_selectedImage != null) {
         if (isDraft) {
-          // You could optionally not upload image for draft
-          // and save it locally, but since it's an XFile for web,
-          // uploading is safer.
-          try {
-            imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    e.toString(),
-                    style: GoogleFonts.inter(),
-                  ),
-                  backgroundColor: AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-            return;
-          }
+          imageUrl = _selectedImage!.path;
         } else {
           try {
             imageUrl = await _newsService.uploadPickedImage(_selectedImage!);

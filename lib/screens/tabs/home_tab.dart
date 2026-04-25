@@ -61,8 +61,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Article.fromFirestore(doc)).toList(),
+          (snapshot) => snapshot.docs
+              .where((doc) => (doc.data() as Map<String, dynamic>)['isDraft'] != true)
+              .map((doc) => Article.fromFirestore(doc))
+              .toList(),
         );
   }
 

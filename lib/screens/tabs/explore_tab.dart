@@ -136,12 +136,16 @@ class _ExploreTabState extends State<ExploreTab> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              final trendingDocs = snapshot.hasData
+                  ? snapshot.data!.docs.where((doc) => (doc.data() as Map<String, dynamic>)['isDraft'] != true).toList()
+                  : [];
+                  
+              if (trendingDocs.isEmpty) {
                 return _buildEmptyTrending();
               }
 
               return Column(
-                children: snapshot.data!.docs.map((doc) {
+                children: trendingDocs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return ListTile(
                     contentPadding: EdgeInsets.zero,

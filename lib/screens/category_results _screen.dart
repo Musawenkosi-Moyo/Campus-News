@@ -48,16 +48,20 @@ class CategoryResultsScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.data!.docs.isEmpty) {
+          final filteredDocs = snapshot.data!.docs
+              .where((doc) => (doc.data() as Map<String, dynamic>)['isDraft'] != true)
+              .toList();
+
+          if (filteredDocs.isEmpty) {
             return _buildEmptyState();
           }
 
           return ListView.separated(
             padding: const EdgeInsets.all(20),
-            itemCount: snapshot.data!.docs.length,
+            itemCount: filteredDocs.length,
             separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
-              final doc = snapshot.data!.docs[index];
+              final doc = filteredDocs[index];
               final data = doc.data() as Map<String, dynamic>;
 
               return _buildNewsCard(context, data);
