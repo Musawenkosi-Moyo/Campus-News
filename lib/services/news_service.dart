@@ -146,4 +146,45 @@ class NewsService {
       return false;
     }
   }
+  /// Updates an existing article in Firestore
+  Future<bool> updateArticle({
+    required String id,
+    required String title,
+    required String category,
+    required String content,
+    required String? imageUrl,
+    bool isDraft = false,
+  }) async {
+    try {
+      final updateData = {
+        'title': title,
+        'category': category,
+        'content': content,
+        'isDraft': isDraft,
+        // Update timestamp when publishing a draft, otherwise keep the old one or update it
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+      
+      if (imageUrl != null) {
+        updateData['imageUrl'] = imageUrl;
+      }
+
+      await _firestore.collection('articles').doc(id).update(updateData);
+      return true;
+    } catch (e) {
+      print('Error updating article: $e');
+      return false;
+    }
+  }
+
+  /// Deletes an article from Firestore
+  Future<bool> deleteArticle(String id) async {
+    try {
+      await _firestore.collection('articles').doc(id).delete();
+      return true;
+    } catch (e) {
+      print('Error deleting article: $e');
+      return false;
+    }
+  }
 }

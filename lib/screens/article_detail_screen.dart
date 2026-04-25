@@ -30,8 +30,11 @@ class ArticleDetailScreen extends StatelessWidget {
               backgroundColor: AppColors.background,
               elevation: 0,
               leading: IconButton(
-                icon: Icon(Icons.arrow_back_ios_new_rounded,
-                    color: AppColors.onBackground, size: 20),
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.onBackground,
+                  size: 20,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               flexibleSpace: FlexibleSpaceBar(
@@ -48,8 +51,8 @@ class ArticleDetailScreen extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(0.15),
-                            Colors.black.withOpacity(0.55),
+                            Colors.black.withValues(alpha: 0.15),
+                            Colors.black.withValues(alpha: 0.55),
                           ],
                         ),
                       ),
@@ -64,8 +67,11 @@ class ArticleDetailScreen extends StatelessWidget {
               backgroundColor: AppColors.background,
               elevation: 0,
               leading: IconButton(
-                icon: Icon(Icons.arrow_back_ios_new_rounded,
-                    color: AppColors.onBackground, size: 20),
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.onBackground,
+                  size: 20,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),

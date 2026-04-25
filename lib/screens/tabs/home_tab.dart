@@ -13,6 +13,7 @@ void _openArticleRead(BuildContext context, Article article) {
     ),
   );
 }
+
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
@@ -270,7 +271,7 @@ class _FeaturedCard extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.75),
+                        Colors.black.withValues(alpha: 0.75),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -295,7 +296,7 @@ class _FeaturedCard extends StatelessWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.05,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         if (article.category.isNotEmpty)
@@ -422,7 +423,6 @@ class _ArticleCard extends StatelessWidget {
     );
   }
 }
-
 
 // ───────────────────────────────────────────
 class _CategoryChips extends StatelessWidget {

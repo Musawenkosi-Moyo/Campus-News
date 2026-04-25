@@ -21,8 +21,10 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
   
   XFile? _selectedImage;
   Uint8List? _selectedImageBytes;
+
   String? _selectedCategory;
-  bool _isLoading = false;
+  bool _isSavingDraft = false;
+  bool _isPublishing = false;
 
   static const List<String> _categories = [
     'Academics',
@@ -47,7 +49,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 80, // Compress for faster upload
+        imageQuality: 80,
       );
       if (image != null) {
         final bytes = await image.readAsBytes();
@@ -58,37 +60,66 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
 
   void _handleSubmit({bool isDraft = false}) async {
     if (!_formKey.currentState!.validate()) return;
-    
-    setState(() => _isLoading = true);
+
+    setState(() {
+      if (isDraft) {
+        _isSavingDraft = true;
+      } else {
+        _isPublishing = true;
+      }
+    });
 
     try {
       String? imageUrl;
       if (_selectedImage != null) {
-        try {
-          imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  e.toString(),
-                  style: GoogleFonts.inter(),
+        if (isDraft) {
+          // You could optionally not upload image for draft
+          // and save it locally, but since it's an XFile for web,
+          // uploading is safer.
+          try {
+            imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    e.toString(),
+                    style: GoogleFonts.inter(),
+                  ),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
                 ),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+              );
+            }
+            return;
           }
-          return;
+        } else {
+          try {
+            imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    e.toString(),
+                    style: GoogleFonts.inter(),
+                  ),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+            return;
+          }
         }
       }
 
@@ -105,15 +136,19 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                isDraft ? 'Article saved as draft!' : 'Article published successfully!',
+                isDraft
+                    ? 'Article saved as draft!'
+                    : 'Article published successfully!',
                 style: GoogleFonts.inter(),
               ),
               backgroundColor: isDraft ? AppColors.secondary : Colors.green,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
-          _clearForm();
+          clearForm();
         }
       } else {
         throw Exception('Upload failed');
@@ -132,11 +167,16 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isSavingDraft = false;
+          _isPublishing = false;
+        });
+      }
     }
   }
 
-  void _clearForm() {
+  void clearForm() {
     _titleController.clear();
     _contentController.clear();
     setState(() {
@@ -173,97 +213,133 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
             ),
             const SizedBox(height: 28),
 
-            // Image Picker
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                width: double.infinity,
-                height: 180,
-                decoration: BoxDecoration(
-                  color: Colors.transparent, // No fill as requested
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.primary.withAlpha(120), // Blue border
-                    width: 2.0,
+            if (_selectedImageBytes == null)
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primary.withAlpha(120),
+                      width: 2.0,
+                    ),
                   ),
-                  image: _selectedImageBytes != null
-                      ? DecorationImage(
-                          image: MemoryImage(_selectedImageBytes!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-
-                child: _selectedImageBytes == null
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withAlpha(20),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.add_photo_alternate_rounded,
-                              color: AppColors.primary,
-                              size: 30,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Tap to add cover image',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'PNG, JPG supported',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.navUnselected,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Container(
-                        alignment: Alignment.bottomRight,
-                        padding: const EdgeInsets.all(12),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white.withAlpha(200),
-                          child: IconButton(
-                            icon: const Icon(Icons.edit, color: AppColors.primary),
-                            onPressed: _pickImage,
-                          ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(20),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.add_photo_alternate_rounded,
+                          color: AppColors.primary,
+                          size: 30,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Tap to add cover image',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'PNG, JPG supported',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppColors.navUnselected,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.primary.withAlpha(50),
+                        width: 1.0,
+                      ),
+                      image: DecorationImage(
+                        image: MemoryImage(_selectedImageBytes!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: Text(
+                          'Change Image',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedImage = null;
+                            _selectedImageBytes = null;
+                          });
+                        },
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: Text(
+                          'Remove Image',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ),
             const SizedBox(height: 20),
 
-            // Title Field
-            _buildLabel('Article Title'),
+            buildLabel('Article Title'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _titleController,
               style: GoogleFonts.inter(color: AppColors.onBackground),
-              decoration: _inputDecoration('Enter article title...'),
+              decoration: inputDecoration('Enter article title...'),
               validator: (val) =>
                   val == null || val.isEmpty ? 'Title is required' : null,
             ),
             const SizedBox(height: 20),
 
-            // Category Dropdown
-            _buildLabel('Category'),
+            buildLabel('Category'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              style: GoogleFonts.inter(color: AppColors.onBackground, fontSize: 14),
-              decoration: _inputDecoration('Select a category'),
+              initialValue: _selectedCategory,
+              style: GoogleFonts.inter(
+                color: AppColors.onBackground,
+                fontSize: 14,
+              ),
+              decoration: inputDecoration('Select a category'),
               dropdownColor: Colors.white,
               borderRadius: BorderRadius.circular(16),
               items: _categories
@@ -275,29 +351,40 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
             ),
             const SizedBox(height: 20),
 
-            // Content Field
-            _buildLabel('Article Content'),
+            buildLabel('Article Content'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _contentController,
-              style: GoogleFonts.inter(color: AppColors.onBackground, fontSize: 14),
+              style: GoogleFonts.inter(
+                color: AppColors.onBackground,
+                fontSize: 14,
+              ),
               maxLines: 8,
-              decoration: _inputDecoration('Write your article here...'),
+              decoration: inputDecoration('Write your article here...'),
               validator: (val) =>
                   val == null || val.isEmpty ? 'Content is required' : null,
             ),
             const SizedBox(height: 32),
 
-            // Action Buttons
             Row(
               children: [
-                // Save as Draft
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _isLoading ? null : () => _handleSubmit(isDraft: true),
-                    icon: const Icon(Icons.save_outlined, size: 18),
+                    onPressed: (_isSavingDraft || _isPublishing)
+                        ? null
+                        : () => _handleSubmit(isDraft: true),
+                    icon: _isSavingDraft
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : const Icon(Icons.save_outlined, size: 18),
                     label: Text(
-                      'Save Draft',
+                      _isSavingDraft ? 'Saving...' : 'Save Draft',
                       style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -311,12 +398,14 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Publish
+
                 Expanded(
                   flex: 2,
                   child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : () => _handleSubmit(),
-                    icon: _isLoading
+                    onPressed: (_isSavingDraft || _isPublishing)
+                        ? null
+                        : () => _handleSubmit(),
+                    icon: _isPublishing
                         ? const SizedBox(
                             width: 18,
                             height: 18,
@@ -327,7 +416,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
                           )
                         : const Icon(Icons.publish_rounded, size: 18),
                     label: Text(
-                      _isLoading ? 'Publishing...' : 'Publish Article',
+                      _isPublishing ? 'Publishing...' : 'Publish Article',
                       style: GoogleFonts.inter(fontWeight: FontWeight.w700),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -350,7 +439,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     );
   }
 
-  Widget _buildLabel(String label) {
+  Widget buildLabel(String label) {
     return Text(
       label,
       style: GoogleFonts.inter(
@@ -361,14 +450,14 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     );
   }
 
-  InputDecoration _inputDecoration(String hint) {
+  InputDecoration inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
       hintStyle: GoogleFonts.inter(
         fontSize: 14,
         color: AppColors.navUnselected,
       ),
-      filled: false, // Removed color fill as requested
+      filled: false,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -393,4 +482,3 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     );
   }
 }
-

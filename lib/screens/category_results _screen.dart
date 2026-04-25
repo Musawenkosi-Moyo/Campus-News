@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +16,10 @@ class CategoryResultsScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onBackground),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.onBackground,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -30,7 +32,6 @@ class CategoryResultsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Query Firestore for articles matching the category
         stream: FirebaseFirestore.instance
             .collection('articles')
             .where('category', isEqualTo: category)
@@ -38,7 +39,9 @@ class CategoryResultsScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong', style: GoogleFonts.inter()));
+            return Center(
+              child: Text('Something went wrong', style: GoogleFonts.inter()),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -72,7 +75,7 @@ class CategoryResultsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -81,7 +84,6 @@ class CategoryResultsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Article Image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.network(
@@ -132,7 +134,11 @@ class CategoryResultsScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.newspaper_rounded, size: 64, color: AppColors.navUnselected.withOpacity(0.5)),
+          Icon(
+            Icons.newspaper_rounded,
+            size: 64,
+            color: AppColors.navUnselected.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 16),
           Text(
             'No news in $category yet.',
