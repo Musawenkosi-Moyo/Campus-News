@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
 import 'package:campus_news/screens/article_detail_screen.dart';
@@ -24,9 +27,7 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab>
-    with SingleTickerProviderStateMixin {
-
+class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -65,8 +66,59 @@ class _HomeTabState extends State<HomeTab>
         .collection('articles')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Article.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Article.fromFirestore(doc)).toList(),
+        );
+  }
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  String get greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return "Good Morning ☀️";
+    if (hour < 18) return "Good Afternoon 🌤";
+    return "Good Evening 🌙";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  // ─────────────────────────────────────────────
+  // 🔥 FIRESTORE STREAM
+  // ─────────────────────────────────────────────
+  Stream<List<Article>> getArticles() {
+    return FirebaseFirestore.instance
+        .collection('articles')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Article.fromFirestore(doc)).toList(),
+        );
   }
 
   @override
@@ -76,7 +128,6 @@ class _HomeTabState extends State<HomeTab>
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-
           // ── APP BAR ─────────────────────────────
           SliverAppBar(
             floating: true,
@@ -113,7 +164,7 @@ class _HomeTabState extends State<HomeTab>
                 onPressed: () {},
                 icon: const Icon(Icons.notifications_outlined),
                 color: AppColors.onBackground,
-              )
+              ),
             ],
           ),
 
@@ -152,7 +203,9 @@ class _HomeTabState extends State<HomeTab>
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               color: Color(0xFFE8E8E8),
-                              borderRadius: BorderRadius.all(Radius.circular(20)),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(20),
+                              ),
                             ),
                           ),
                         ),
@@ -181,8 +234,9 @@ class _HomeTabState extends State<HomeTab>
                   (a) => a.isFeatured,
                   orElse: () => articles.first,
                 );
-                final listArticles =
-                    articles.where((a) => a.id != featured.id).toList();
+                final listArticles = articles
+                    .where((a) => a.id != featured.id)
+                    .toList();
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -235,7 +289,6 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 }
-
 
 // ─────────────────────────────────────────────
 // 🌟 FEATURED CARD
@@ -328,7 +381,6 @@ class _FeaturedCard extends StatelessWidget {
   }
 }
 
-
 // ─────────────────────────────────────────────
 // 📰 ARTICLE CARD + ANIMATION
 // ─────────────────────────────────────────────
@@ -336,10 +388,7 @@ class _AnimatedArticleCard extends StatelessWidget {
   final Article article;
   final int index;
 
-  const _AnimatedArticleCard({
-    required this.article,
-    required this.index,
-  });
+  const _AnimatedArticleCard({required this.article, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -436,7 +485,6 @@ class _ArticleCard extends StatelessWidget {
   }
 }
 
-
 // ─────────────────────────────────────────────
 // 🏷 CATEGORY CHIPS (UI ONLY)
 // ─────────────────────────────────────────────
@@ -477,6 +525,39 @@ class _Chip extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────
+// SHIMMERS (simple placeholders)
+// ─────────────────────────────────────────────
+class _ArticleShimmer extends StatelessWidget {
+  const _ArticleShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80,
+      margin: const EdgeInsets.only(bottom: 14),
+      color: Colors.grey.shade300,
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  const _Chip(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label),
+    );
+  }
+}
 
 // ─────────────────────────────────────────────
 // SHIMMERS (simple placeholders)
