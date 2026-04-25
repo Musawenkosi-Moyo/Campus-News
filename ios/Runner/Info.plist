@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to attach cover images to articles.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app may use the camera to capture images for articles.</string>
 </dict>
 </plist>

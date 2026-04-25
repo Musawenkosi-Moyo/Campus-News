@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,7 +19,8 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
   final NewsService _newsService = NewsService();
   final ImagePicker _picker = ImagePicker();
   
-  File? _selectedImage;
+  XFile? _selectedImage;
+  Uint8List? _selectedImageBytes;
   String? _selectedCategory;
   bool _isLoading = false;
 
@@ -49,8 +50,10 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
         imageQuality: 80, // Compress for faster upload
       );
       if (image != null) {
+        final bytes = await image.readAsBytes();
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedImage = image;
+          _selectedImageBytes = bytes;
         });
       }
     } catch (e) {
@@ -70,7 +73,23 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     try {
       String? imageUrl;
       if (_selectedImage != null) {
-        imageUrl = await _newsService.uploadImage(_selectedImage!);
+        try {
+          imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                  style: GoogleFonts.inter(),
+                ),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
       }
 
       final success = await _newsService.uploadArticle(
@@ -103,8 +122,12 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: Could not upload article'),
+            content: Text(
+              'Could not publish article: $e',
+              style: GoogleFonts.inter(),
+            ),
             backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -119,6 +142,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     setState(() {
       _selectedCategory = null;
       _selectedImage = null;
+      _selectedImageBytes = null;
     });
   }
 
@@ -162,15 +186,15 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
                     color: AppColors.primary.withAlpha(120), // Blue border
                     width: 2.0,
                   ),
-                  image: _selectedImage != null
+                  image: _selectedImageBytes != null
                       ? DecorationImage(
-                          image: FileImage(_selectedImage!),
+                          image: MemoryImage(_selectedImageBytes!),
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
 
-                child: _selectedImage == null
+                child: _selectedImageBytes == null
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
