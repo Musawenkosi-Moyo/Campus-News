@@ -1,6 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -141,7 +142,7 @@ class NewsService {
       });
       return true;
     } catch (e) {
-      print('Error uploading article: $e');
+      debugPrint('Error uploading article: $e');
       return false;
     }
   }

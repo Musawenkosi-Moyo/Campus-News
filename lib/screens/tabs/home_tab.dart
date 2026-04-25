@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
 import 'package:campus_news/screens/article_detail_screen.dart';
@@ -16,61 +13,8 @@ void _openArticleRead(BuildContext context, Article article) {
     ),
   );
 }
-
-// ─────────────────────────────────────────────
-// 🏠 HOME TAB
-// ─────────────────────────────────────────────
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
-
-  @override
-  State<HomeTab> createState() => _HomeTabState();
-}
-
-class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
-  String get greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return "Good Morning ☀️";
-    if (hour < 18) return "Good Afternoon 🌤";
-    return "Good Evening 🌙";
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
-    );
-    _fadeController.forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  // ─────────────────────────────────────────────
-  // 🔥 FIRESTORE STREAM
-  // ─────────────────────────────────────────────
-  Stream<List<Article>> getArticles() {
-    return FirebaseFirestore.instance
-        .collection('articles')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Article.fromFirestore(doc)).toList(),
-        );
-  }
 
   @override
   State<HomeTab> createState() => _HomeTabState();
@@ -290,9 +234,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   }
 }
 
-// ─────────────────────────────────────────────
-// 🌟 FEATURED CARD
-// ─────────────────────────────────────────────
 class _FeaturedCard extends StatelessWidget {
   final Article article;
 
@@ -381,9 +322,6 @@ class _FeaturedCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// 📰 ARTICLE CARD + ANIMATION
-// ─────────────────────────────────────────────
 class _AnimatedArticleCard extends StatelessWidget {
   final Article article;
   final int index;
@@ -485,9 +423,8 @@ class _ArticleCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// 🏷 CATEGORY CHIPS (UI ONLY)
-// ─────────────────────────────────────────────
+
+// ───────────────────────────────────────────
 class _CategoryChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -503,40 +440,6 @@ class _CategoryChips extends StatelessWidget {
           _Chip("Academic"),
         ],
       ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  const _Chip(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(label),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// SHIMMERS (simple placeholders)
-// ─────────────────────────────────────────────
-class _ArticleShimmer extends StatelessWidget {
-  const _ArticleShimmer();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 80,
-      margin: const EdgeInsets.only(bottom: 14),
-      color: Colors.grey.shade300,
     );
   }
 }
