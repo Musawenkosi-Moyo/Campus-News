@@ -258,7 +258,7 @@ class _FeaturedCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                if (article.imageUrl.isNotEmpty)
+                if (article.imageUrl.isNotEmpty && article.imageUrl.startsWith('http'))
                   CachedNetworkImage(
                     imageUrl: article.imageUrl,
                     fit: BoxFit.cover,
@@ -360,7 +360,7 @@ class _ArticleCard extends StatelessWidget {
                   child: SizedBox(
                     width: 80,
                     height: 80,
-                    child: article.imageUrl.isNotEmpty
+                    child: article.imageUrl.isNotEmpty && article.imageUrl.startsWith('http')
                         ? CachedNetworkImage(
                             imageUrl: article.imageUrl,
                             fit: BoxFit.cover,

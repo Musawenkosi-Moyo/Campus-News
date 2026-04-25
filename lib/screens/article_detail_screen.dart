@@ -23,7 +23,7 @@ class ArticleDetailScreen extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          if (article.imageUrl.isNotEmpty)
+          if (article.imageUrl.isNotEmpty && article.imageUrl.startsWith('http'))
             SliverAppBar(
               pinned: true,
               expandedHeight: 280,
