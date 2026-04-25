@@ -7,11 +7,7 @@ import 'package:campus_news/screens/login_screen.dart';
 class SettingsTab extends StatelessWidget {
   const SettingsTab({super.key});
 
-  void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => screen),
-    );
-  }
+
 
  
   void _handleEditProfile(BuildContext context) async {
