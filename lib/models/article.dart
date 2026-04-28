@@ -6,6 +6,7 @@ class Article {
   final String summary;
   final String content;
   final String imageUrl;
+  final String pdfUrl;
   final String category;
   final DateTime timestamp;
   final bool isFeatured;
@@ -16,6 +17,7 @@ class Article {
     required this.summary,
     required this.content,
     required this.imageUrl,
+    required this.pdfUrl,
     required this.category,
     required this.timestamp,
     required this.isFeatured,
@@ -42,6 +44,7 @@ class Article {
       summary: summary,
       content: rawContent,
       imageUrl: data['imageUrl']?.toString() ?? '',
+      pdfUrl: data['pdfUrl']?.toString() ?? '',
       category: data['category']?.toString() ?? '',
       timestamp: when,
       isFeatured: data['isFeatured'] == true,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
@@ -23,17 +23,15 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  String get greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return "Good Morning ☀️";
-    if (hour < 18) return "Good Afternoon 🌤";
-    return "Good Evening 🌙";
-  }
+  PageController? _headlineController;
+  Timer? _headlineTimer;
+  int _headlineIndex = 0;
+  int _headlineCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _headlineController = PageController(viewportFraction: 1);
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -43,12 +41,33 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       curve: Curves.easeOut,
     );
     _fadeController.forward();
+    _startHeadlineRotation();
   }
 
   @override
   void dispose() {
+    _headlineTimer?.cancel();
+    _headlineController?.dispose();
     _fadeController.dispose();
     super.dispose();
+  }
+
+  void _startHeadlineRotation() {
+    _headlineTimer?.cancel();
+    _headlineTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      final controller = _headlineController;
+      if (controller == null || !controller.hasClients || _headlineCount <= 1) {
+        return;
+      }
+      final nextPage = _headlineIndex >= _headlineCount - 1
+          ? 0
+          : _headlineIndex + 1;
+      controller.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
   // ─────────────────────────────────────────────
@@ -78,29 +97,16 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             snap: true,
             backgroundColor: AppColors.background,
             elevation: 0,
-            expandedHeight: 80,
+            expandedHeight: 76,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    greeting,
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onBackground,
-                    ),
-                  ),
-                  Text(
-                    'Stay updated with campus stories',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      color: AppColors.navUnselected,
-                    ),
-                  ),
-                ],
+              titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              title: const Text(
+                'Campus News',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onBackground,
+                ),
               ),
             ),
             actions: [
@@ -110,23 +116,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 color: AppColors.onBackground,
               ),
             ],
-          ),
-
-          // ── BREAKING NEWS (still static for now) ──
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFB300)),
-              ),
-              child: Text(
-                "Breaking news will come from Firestore later",
-                style: GoogleFonts.dmSans(fontSize: 12),
-              ),
-            ),
           ),
 
           // ── CATEGORY CHIPS ───────────────────────
@@ -174,13 +163,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   );
                 }
 
-                final featured = articles.firstWhere(
-                  (a) => a.isFeatured,
-                  orElse: () => articles.first,
-                );
-                final listArticles = articles
-                    .where((a) => a.id != featured.id)
-                    .toList();
+                final headlines = articles.take(3).toList();
+                _headlineCount = headlines.length;
+                if (_headlineIndex >= _headlineCount && _headlineCount > 0) {
+                  _headlineIndex = 0;
+                }
+                _headlineController ??= PageController(viewportFraction: 1);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,37 +176,77 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Text(
-                        'Main story',
-                        style: GoogleFonts.playfairDisplay(
+                        'Headlines',
+                        style: const TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.onBackground,
                         ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                      child: _FeaturedCard(article: featured),
+                      child: SizedBox(
+                        height: 220,
+                        child: PageView.builder(
+                          controller: _headlineController,
+                          itemCount: headlines.isEmpty ? 0 : headlines.length,
+                          onPageChanged: (index) {
+                            setState(() {
+                              _headlineIndex = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            final article = headlines[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: _FeaturedCard(article: article),
+                            );
+                          },
+                        ),
+                      ),
                     ),
+                    if (headlines.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            headlines.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: index == _headlineIndex ? 18 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: index == _headlineIndex
+                                    ? AppColors.primary
+                                    : AppColors.primary.withAlpha(70),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                       child: Text(
                         'Recent Updates',
-                        style: GoogleFonts.playfairDisplay(
+                        style: const TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.onBackground,
                         ),
                       ),
                     ),
                     ListView.builder(
-                      itemCount: listArticles.length,
+                      itemCount: articles.length,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                       itemBuilder: (context, index) {
                         return _AnimatedArticleCard(
-                          article: listArticles[index],
+                          article: articles[index],
                           index: index,
                         );
                       },
@@ -270,7 +298,7 @@ class _FeaturedCard extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.75),
+                        Colors.black.withValues(alpha: 0.75),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -291,21 +319,21 @@ class _FeaturedCard extends StatelessWidget {
                         if (article.category.isNotEmpty)
                           Text(
                             article.category.toUpperCase(),
-                            style: GoogleFonts.dmSans(
+                            style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.bold,
                               letterSpacing: 1.05,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         if (article.category.isNotEmpty)
                           const SizedBox(height: 6),
                         Text(
                           article.title,
-                          style: GoogleFonts.playfairDisplay(
+                          style: const TextStyle(
                             fontSize: 20,
                             color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             height: 1.2,
                           ),
                         ),
@@ -344,77 +372,92 @@ class _ArticleCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Material(
-        color: AppColors.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () => _openArticleRead(context, article),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: article.imageUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: article.imageUrl,
-                            fit: BoxFit.cover,
-                          )
-                        : ColoredBox(
-                            color: Colors.grey.shade300,
-                            child: const Icon(Icons.article_outlined),
-                          ),
+        elevation: 0,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withAlpha(35)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withAlpha(10),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: InkWell(
+            onTap: () => _openArticleRead(context, article),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: article.imageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: article.imageUrl,
+                              fit: BoxFit.cover,
+                            )
+                          : ColoredBox(
+                              color: Colors.grey.shade300,
+                              child: const Icon(Icons.article_outlined),
+                            ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (article.category.isNotEmpty)
-                        Text(
-                          article.category.toUpperCase(),
-                          style: GoogleFonts.dmSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.8,
-                            color: AppColors.primary,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (article.category.isNotEmpty)
+                          Text(
+                            article.category.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                      if (article.category.isNotEmpty)
-                        const SizedBox(height: 4),
-                      Text(
-                        article.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                          color: AppColors.onBackground,
-                        ),
-                      ),
-                      if (article.summary.isNotEmpty) ...[
-                        const SizedBox(height: 6),
+                        if (article.category.isNotEmpty)
+                          const SizedBox(height: 4),
                         Text(
-                          article.summary,
+                          article.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 13,
-                            height: 1.35,
-                            color: AppColors.navUnselected,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            height: 1.25,
+                            color: AppColors.onBackground,
                           ),
                         ),
+                        if (article.summary.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            article.summary,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.35,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -432,7 +475,7 @@ class _CategoryChips extends StatelessWidget {
       height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 20),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
         children: const [
           _Chip("All"),
           _Chip("Events"),
@@ -452,12 +495,20 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withAlpha(35)),
       ),
-      child: Text(label),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.onBackground,
+        ),
+      ),
     );
   }
 }
