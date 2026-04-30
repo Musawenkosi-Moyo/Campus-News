@@ -54,7 +54,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   void _startHeadlineRotation() {
     _headlineTimer?.cancel();
-    _headlineTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+    _headlineTimer = Timer.periodic(const Duration(seconds: 7), (_) {
       final controller = _headlineController;
       if (controller == null || !controller.hasClients || _headlineCount <= 1) {
         return;
@@ -91,36 +91,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── APP BAR ─────────────────────────────
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            expandedHeight: 76,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              title: const Text(
-                'Campus News',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.onBackground,
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_outlined),
-                color: AppColors.onBackground,
-              ),
-            ],
-          ),
-
-          // ── CATEGORY CHIPS ───────────────────────
-          SliverToBoxAdapter(child: _CategoryChips()),
-
           // ── MAIN STORY (top) + RECENT LIST ───────
           SliverToBoxAdapter(
             child: StreamBuilder<List<Article>>(
@@ -369,149 +339,89 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.primary.withAlpha(35)),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(10),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: InkWell(
-            onTap: () => _openArticleRead(context, article),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: article.imageUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: article.imageUrl,
-                              fit: BoxFit.cover,
-                            )
-                          : ColoredBox(
-                              color: Colors.grey.shade300,
-                              child: const Icon(Icons.article_outlined),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (article.category.isNotEmpty)
-                          Text(
-                            article.category.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                              color: AppColors.primary,
-                            ),
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => _openArticleRead(context, article),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: article.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: article.imageUrl,
+                            fit: BoxFit.cover,
+                          )
+                        : ColoredBox(
+                            color: Colors.grey.shade300,
+                            child: const Icon(Icons.article_outlined),
                           ),
-                        if (article.category.isNotEmpty)
-                          const SizedBox(height: 4),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (article.category.isNotEmpty)
                         Text(
-                          article.title,
+                          article.category.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      if (article.category.isNotEmpty) const SizedBox(height: 4),
+                      Text(
+                        article.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.25,
+                          color: AppColors.onBackground,
+                        ),
+                      ),
+                      if (article.summary.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          article.summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            height: 1.25,
-                            color: AppColors.onBackground,
+                            fontSize: 13,
+                            height: 1.35,
+                            color: Colors.black54,
                           ),
                         ),
-                        if (article.summary.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            article.summary,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              height: 1.35,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
                       ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-
-// ───────────────────────────────────────────
-class _CategoryChips extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-        children: const [
-          _Chip("All"),
-          _Chip("Events"),
-          _Chip("Sports"),
-          _Chip("Academic"),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  const _Chip(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withAlpha(35)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.onBackground,
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.primary.withAlpha(30),
         ),
-      ),
+      ],
     );
   }
 }
+
 
 // ─────────────────────────────────────────────
 // SHIMMERS (simple placeholders)
