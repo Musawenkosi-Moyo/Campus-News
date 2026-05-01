@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:campus_news/services/news_service.dart';
@@ -21,6 +22,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
   
   XFile? _selectedImage;
   Uint8List? _selectedImageBytes;
+  FilePickerResult? _selectedPdf;
   String? _selectedCategory;
   bool _isLoading = false;
 
@@ -65,6 +67,28 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
     }
   }
 
+  Future<void> _pickPdf() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        withData: true,
+      );
+
+      if (result != null) {
+        setState(() {
+          _selectedPdf = result;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking PDF: $e')),
+        );
+      }
+    }
+  }
+
   void _handleSubmit({bool isDraft = false}) async {
     if (!_formKey.currentState!.validate()) return;
     
@@ -72,9 +96,30 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
 
     try {
       String? imageUrl;
+      String? pdfUrl;
       if (_selectedImage != null) {
         try {
           imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                  style: GoogleFonts.inter(),
+                ),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      if (_selectedPdf != null) {
+        try {
+          pdfUrl = await _newsService.uploadPickedPdf(_selectedPdf!);
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -97,6 +142,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
         category: _selectedCategory!,
         content: _contentController.text,
         imageUrl: imageUrl,
+        pdfUrl: pdfUrl,
         isDraft: isDraft,
       );
 
@@ -143,6 +189,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
       _selectedCategory = null;
       _selectedImage = null;
       _selectedImageBytes = null;
+      _selectedPdf = null;
     });
   }
 
@@ -245,6 +292,47 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
             ),
             const SizedBox(height: 20),
 
+            _buildLabel('Article PDF (Optional)'),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _isLoading ? null : _pickPdf,
+              icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+              label: Text(
+                _selectedPdf == null
+                    ? 'Select PDF'
+                    : _selectedPdf!.files.single.name,
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: BorderSide(color: AppColors.primary.withAlpha(140)),
+                minimumSize: const Size(double.infinity, 52),
+                alignment: Alignment.centerLeft,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+            if (_selectedPdf != null) ...[
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _isLoading
+                    ? null
+                    : () => setState(() => _selectedPdf = null),
+                icon: const Icon(Icons.close, size: 16),
+                label: Text(
+                  'Remove selected PDF',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+            const SizedBox(height: 20),
+
             // Title Field
             _buildLabel('Article Title'),
             const SizedBox(height: 8),
@@ -261,7 +349,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
             _buildLabel('Category'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               style: GoogleFonts.inter(color: AppColors.onBackground, fontSize: 14),
               decoration: _inputDecoration('Select a category'),
               dropdownColor: Colors.white,

@@ -1,112 +1,141 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:campus_news/bookmark_provider.dart'; // Ensure this path is correct
+import 'package:campus_news/bookmark_provider.dart';
+import 'package:campus_news/models/article.dart';
+import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BookmarkTab extends StatelessWidget {
   const BookmarkTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // This listens to the Provider for any changes
-    final bookmarkProvider = Provider.of<BookmarkProvider>(context);
-    final bookmarkedArticles = bookmarkProvider.items;
-
     return Scaffold(
-      
-      body: bookmarkedArticles.isEmpty
-          ? _buildEmptyState()
-          : _buildBookmarkList(context, bookmarkedArticles),
+      body: AnimatedBuilder(
+        animation: bookmarkProvider,
+        builder: (context, _) {
+          final bookmarkedArticles = bookmarkProvider.items;
+          return bookmarkedArticles.isEmpty
+              ? _buildEmptyState()
+              : _buildBookmarkList(context, bookmarkedArticles);
+        },
+      ),
     );
   }
 
-  // The listview which displays when there are articles
-  Widget _buildBookmarkList(BuildContext context, List<NewsArticle> articles) {
+  Widget _buildBookmarkList(BuildContext context, List<Article> articles) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       itemCount: articles.length,
       itemBuilder: (context, index) {
         final article = articles[index];
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: Colors.grey.shade200),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                // Article Image Preview
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    article.imageUrl,
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image_not_supported),
+        return Column(
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ArticleDetailScreen(article: article),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: article.imageUrl.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: article.imageUrl,
+                                fit: BoxFit.cover,
+                              )
+                            : ColoredBox(
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.article_outlined),
+                              ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // Article Text Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        article.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: AppColors.onBackground,
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (article.category.isNotEmpty)
+                            Text(
+                              article.category.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          if (article.category.isNotEmpty)
+                            const SizedBox(height: 4),
+                          Text(
+                            article.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              height: 1.25,
+                              color: AppColors.onBackground,
+                            ),
+                          ),
+                          if (article.summary.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              article.summary,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                height: 1.35,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        article.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                          height: 1.4,
-                        ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.bookmark_rounded,
+                        color: AppColors.primary,
                       ),
-                    ],
-                  ),
+                      onPressed: () {
+                        bookmarkProvider.toggleBookmark(article);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Removed from Bookmarks"),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                // Functional Bookmark Button
-                IconButton(
-                  icon: const Icon(Icons.bookmark, color: AppColors.primary),
-                  onPressed: () {
-                    // Logic to remove from bookmarks
-                    Provider.of<BookmarkProvider>(context, listen: false)
-                        .toggleBookmark(article);
-                    
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Removed from Bookmarks")),
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: AppColors.primary.withAlpha(30),
+            ),
+          ],
         );
       },
     );
   }
 
-  // THE EMPTY STATE
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -148,8 +177,7 @@ class BookmarkTab extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             OutlinedButton.icon(
-              onPressed: () {
-              },
+              onPressed: () {},
               icon: const Icon(Icons.explore_rounded),
               label: Text(
                 'Explore Articles',

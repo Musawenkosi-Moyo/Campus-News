@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Full-screen read view for an [Article] from the home feed.
 class ArticleDetailScreen extends StatelessWidget {
@@ -14,6 +15,26 @@ class ArticleDetailScreen extends StatelessWidget {
     final c = article.content.trim();
     if (c.isNotEmpty) return c;
     return article.summary.trim();
+  }
+
+  Future<void> _openPdf(BuildContext context, LaunchMode mode) async {
+    final pdfUrl = article.pdfUrl.trim();
+    if (pdfUrl.isEmpty) return;
+
+    final uri = Uri.tryParse(pdfUrl);
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This PDF link is invalid.')),
+      );
+      return;
+    }
+
+    final launched = await launchUrl(uri, mode: mode);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the PDF right now.')),
+      );
+    }
   }
 
   @override
@@ -48,8 +69,8 @@ class ArticleDetailScreen extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(0.15),
-                            Colors.black.withOpacity(0.55),
+                            Colors.black.withValues(alpha: 0.15),
+                            Colors.black.withValues(alpha: 0.55),
                           ],
                         ),
                       ),
@@ -104,6 +125,80 @@ class ArticleDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (article.pdfUrl.trim().isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Attached PDF',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.onBackground,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Open the full article as a PDF or download it to your device.',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 13,
+                              color: AppColors.navUnselected,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _openPdf(
+                                    context,
+                                    LaunchMode.platformDefault,
+                                  ),
+                                  icon: const Icon(Icons.open_in_new_rounded),
+                                  label: const Text('Open PDF'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(
+                                      color: AppColors.primary,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _openPdf(
+                                    context,
+                                    LaunchMode.externalApplication,
+                                  ),
+                                  icon: const Icon(Icons.download_rounded),
+                                  label: const Text('Download'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   Text(
                     _body.isNotEmpty ? _body : 'No article text yet.',
                     style: GoogleFonts.dmSans(

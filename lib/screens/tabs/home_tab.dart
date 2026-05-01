@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
 import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:campus_news/bookmark_provider.dart';
 
 void _openArticleRead(BuildContext context, Article article) {
   Navigator.of(context).push<void>(
@@ -23,17 +24,15 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  String get greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return "Good Morning ☀️";
-    if (hour < 18) return "Good Afternoon 🌤";
-    return "Good Evening 🌙";
-  }
+  PageController? _headlineController;
+  Timer? _headlineTimer;
+  int _headlineIndex = 0;
+  int _headlineCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _headlineController = PageController(viewportFraction: 1);
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -43,12 +42,33 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       curve: Curves.easeOut,
     );
     _fadeController.forward();
+    _startHeadlineRotation();
   }
 
   @override
   void dispose() {
+    _headlineTimer?.cancel();
+    _headlineController?.dispose();
     _fadeController.dispose();
     super.dispose();
+  }
+
+  void _startHeadlineRotation() {
+    _headlineTimer?.cancel();
+    _headlineTimer = Timer.periodic(const Duration(seconds: 7), (_) {
+      final controller = _headlineController;
+      if (controller == null || !controller.hasClients || _headlineCount <= 1) {
+        return;
+      }
+      final nextPage = _headlineIndex >= _headlineCount - 1
+          ? 0
+          : _headlineIndex + 1;
+      controller.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
   // ─────────────────────────────────────────────
@@ -72,66 +92,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── APP BAR ─────────────────────────────
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            expandedHeight: 80,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    greeting,
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onBackground,
-                    ),
-                  ),
-                  Text(
-                    'Stay updated with campus stories',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      color: AppColors.navUnselected,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_outlined),
-                color: AppColors.onBackground,
-              ),
-            ],
-          ),
-
-          // ── BREAKING NEWS (still static for now) ──
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFB300)),
-              ),
-              child: Text(
-                "Breaking news will come from Firestore later",
-                style: GoogleFonts.dmSans(fontSize: 12),
-              ),
-            ),
-          ),
-
-          // ── CATEGORY CHIPS ───────────────────────
-          SliverToBoxAdapter(child: _CategoryChips()),
-
           // ── MAIN STORY (top) + RECENT LIST ───────
           SliverToBoxAdapter(
             child: StreamBuilder<List<Article>>(
@@ -174,13 +134,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   );
                 }
 
-                final featured = articles.firstWhere(
-                  (a) => a.isFeatured,
-                  orElse: () => articles.first,
-                );
-                final listArticles = articles
-                    .where((a) => a.id != featured.id)
-                    .toList();
+                final headlines = articles.take(3).toList();
+                _headlineCount = headlines.length;
+                if (_headlineIndex >= _headlineCount && _headlineCount > 0) {
+                  _headlineIndex = 0;
+                }
+                _headlineController ??= PageController(viewportFraction: 1);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,37 +147,77 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Text(
-                        'Main story',
-                        style: GoogleFonts.playfairDisplay(
+                        'Headlines',
+                        style: const TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.onBackground,
                         ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                      child: _FeaturedCard(article: featured),
+                      child: SizedBox(
+                        height: 220,
+                        child: PageView.builder(
+                          controller: _headlineController,
+                          itemCount: headlines.isEmpty ? 0 : headlines.length,
+                          onPageChanged: (index) {
+                            setState(() {
+                              _headlineIndex = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            final article = headlines[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: _FeaturedCard(article: article),
+                            );
+                          },
+                        ),
+                      ),
                     ),
+                    if (headlines.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            headlines.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: index == _headlineIndex ? 18 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: index == _headlineIndex
+                                    ? AppColors.primary
+                                    : AppColors.primary.withAlpha(70),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                       child: Text(
                         'Recent Updates',
-                        style: GoogleFonts.playfairDisplay(
+                        style: const TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.onBackground,
                         ),
                       ),
                     ),
                     ListView.builder(
-                      itemCount: listArticles.length,
+                      itemCount: articles.length,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                       itemBuilder: (context, index) {
                         return _AnimatedArticleCard(
-                          article: listArticles[index],
+                          article: articles[index],
                           index: index,
                         );
                       },
@@ -270,7 +269,7 @@ class _FeaturedCard extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.75),
+                        Colors.black.withValues(alpha: 0.75),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -278,6 +277,11 @@ class _FeaturedCard extends StatelessWidget {
                   ),
                 ),
 
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _ArticleBookmarkButton(article: article),
+                ),
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -291,21 +295,21 @@ class _FeaturedCard extends StatelessWidget {
                         if (article.category.isNotEmpty)
                           Text(
                             article.category.toUpperCase(),
-                            style: GoogleFonts.dmSans(
+                            style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.bold,
                               letterSpacing: 1.05,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         if (article.category.isNotEmpty)
                           const SizedBox(height: 6),
                         Text(
                           article.title,
-                          style: GoogleFonts.playfairDisplay(
+                          style: const TextStyle(
                             fontSize: 20,
                             color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             height: 1.2,
                           ),
                         ),
@@ -341,16 +345,13 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
+    return Column(
+      children: [
+        InkWell(
           onTap: () => _openArticleRead(context, article),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -378,22 +379,21 @@ class _ArticleCard extends StatelessWidget {
                       if (article.category.isNotEmpty)
                         Text(
                           article.category.toUpperCase(),
-                          style: GoogleFonts.dmSans(
+                          style: const TextStyle(
                             fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
                             color: AppColors.primary,
                           ),
                         ),
-                      if (article.category.isNotEmpty)
-                        const SizedBox(height: 4),
+                      if (article.category.isNotEmpty) const SizedBox(height: 4),
                       Text(
                         article.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.playfairDisplay(
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.bold,
                           height: 1.25,
                           color: AppColors.onBackground,
                         ),
@@ -404,63 +404,32 @@ class _ArticleCard extends StatelessWidget {
                           article.summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.dmSans(
+                          style: const TextStyle(
                             fontSize: 13,
                             height: 1.35,
-                            color: AppColors.navUnselected,
+                            color: Colors.black54,
                           ),
                         ),
                       ],
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                _ArticleBookmarkButton(article: article),
               ],
             ),
           ),
         ),
-      ),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.primary.withAlpha(30),
+        ),
+      ],
     );
   }
 }
 
-
-// ───────────────────────────────────────────
-class _CategoryChips extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 20),
-        children: const [
-          _Chip("All"),
-          _Chip("Events"),
-          _Chip("Sports"),
-          _Chip("Academic"),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  const _Chip(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(label),
-    );
-  }
-}
 
 // ─────────────────────────────────────────────
 // SHIMMERS (simple placeholders)
@@ -474,6 +443,44 @@ class _ArticleShimmer extends StatelessWidget {
       height: 80,
       margin: const EdgeInsets.only(bottom: 14),
       color: Colors.grey.shade300,
+    );
+  }
+}
+
+class _ArticleBookmarkButton extends StatelessWidget {
+  final Article article;
+
+  const _ArticleBookmarkButton({required this.article});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: bookmarkProvider,
+      builder: (context, _) {
+        final isBookmarked = bookmarkProvider.isBookmarked(article);
+        return IconButton(
+          icon: Icon(
+            isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_outline_rounded,
+            color: isBookmarked ? AppColors.primary : Colors.white,
+          ),
+          style: IconButton.styleFrom(
+            backgroundColor: isBookmarked
+                ? Colors.white
+                : Colors.black.withValues(alpha: 0.35),
+          ),
+          onPressed: () {
+            bookmarkProvider.toggleBookmark(article);
+            final message = isBookmarked
+                ? "Removed from Bookmarks"
+                : "Added to Bookmarks";
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          },
+        );
+      },
     );
   }
 }

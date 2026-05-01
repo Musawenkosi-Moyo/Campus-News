@@ -13,6 +13,7 @@ class ExploreTab extends StatefulWidget {
 
 class _ExploreTabState extends State<ExploreTab> {
   final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
 
   // Function to navigate to a category-specific screen
  void _navigateToCategory(BuildContext context, String categoryName) {
@@ -35,10 +36,9 @@ class _ExploreTabState extends State<ExploreTab> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.primary.withAlpha(20),
+                color: AppColors.primary.withAlpha(100),
               ),
             ),
             child: Row(
@@ -48,8 +48,10 @@ class _ExploreTabState extends State<ExploreTab> {
                 Expanded(
                   child: TextField(
                     controller: _searchController,
-                    onSubmitted: (value) {
-                      // Trigger search logic here
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.trim();
+                      });
                     },
                     decoration: InputDecoration(
                       hintText: 'Search campus news...',
@@ -78,85 +80,161 @@ class _ExploreTabState extends State<ExploreTab> {
           ),
           const SizedBox(height: 16),
 
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 14,
-            crossAxisSpacing: 14,
-            childAspectRatio: 1.4,
-            children: [
-              _CategoryCard(
-                icon: Icons.school_rounded,
-                label: 'Academics',
-                color: const Color(0xFF4CAF50),
-                onTap: () => _navigateToCategory(context, 'Academics'),
-              ),
-              _CategoryCard(
-                icon: Icons.sports_soccer_rounded,
-                label: 'Sports',
-                color: const Color(0xFFFF9800),
-                onTap: () => _navigateToCategory(context, 'Sports'),
-              ),
-              _CategoryCard(
-                icon: Icons.celebration_rounded,
-                label: 'Events',
-                color: const Color(0xFF9C27B0),
-                onTap: () => _navigateToCategory(context, 'Events'),
-              ),
-              _CategoryCard(
-                icon: Icons.groups_rounded,
-                label: 'Clubs',
-                color: const Color(0xFF2196F3),
-                onTap: () => _navigateToCategory(context, 'Clubs'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-
-          //Trending Topics (Connected to Firebase)
-          Text(
-            'Trending Topics',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.onBackground,
+          if (_searchQuery.isEmpty) ...[
+            Column(
+              children: [
+                _CategoryListItem(
+                  icon: Icons.school_rounded,
+                  label: 'Academics',
+                  color: const Color(0xFF4CAF50),
+                  onTap: () => _navigateToCategory(context, 'Academics'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.sports_soccer_rounded,
+                  label: 'Sports',
+                  color: const Color(0xFFFF9800),
+                  onTap: () => _navigateToCategory(context, 'Sports'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.celebration_rounded,
+                  label: 'Events',
+                  color: const Color(0xFF9C27B0),
+                  onTap: () => _navigateToCategory(context, 'Events'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.groups_rounded,
+                  label: 'Clubs',
+                  color: const Color(0xFF2196F3),
+                  onTap: () => _navigateToCategory(context, 'Clubs'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.health_and_safety_rounded,
+                  label: 'Health',
+                  color: Colors.red,
+                  onTap: () => _navigateToCategory(context, 'Health'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.computer_rounded,
+                  label: 'Tech',
+                  color: Colors.teal,
+                  onTap: () => _navigateToCategory(context, 'Tech'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.palette_rounded,
+                  label: 'Culture',
+                  color: Colors.pink,
+                  onTap: () => _navigateToCategory(context, 'Culture'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.public_rounded,
+                  label: 'General',
+                  color: Colors.blueGrey,
+                  onTap: () => _navigateToCategory(context, 'General'),
+                ),
+                _CategoryListItem(
+                  icon: Icons.campaign_rounded,
+                  label: 'Notices',
+                  color: Colors.deepOrange,
+                  onTap: () => _navigateToCategory(context, 'Notices'),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 14),
+            const SizedBox(height: 28),
 
-          // StreamBuilder listens to Firestore articles ordered by "views"
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('articles')
-                .orderBy('views', descending: true)
-                .limit(5)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return _buildEmptyTrending();
-              }
+            Text(
+              'Mostly Open News',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onBackground,
+              ),
+            ),
+            const SizedBox(height: 14),
 
-              return Column(
-                children: snapshot.data!.docs.map((doc) {
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('articles')
+                  .orderBy('views', descending: true)
+                  .limit(5)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return _buildEmptyTrending();
+                }
+
+                return Column(
+                  children: snapshot.data!.docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.trending_up, color: Colors.redAccent),
+                      title: Text(data['title'] ?? 'No Title', 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                      subtitle: Text("${data['views']} students reading"),
+                      onTap: () {
+                        // Navigate to article detail
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ] else ...[
+            Text(
+              'Search Results',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onBackground,
+              ),
+            ),
+            const SizedBox(height: 14),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('articles')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                final allDocs = snapshot.data?.docs ?? [];
+                final filteredDocs = allDocs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.trending_up, color: Colors.redAccent),
-                    title: Text(data['title'] ?? 'No Title', 
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
-                    subtitle: Text("${data['views']} students reading"),
-                    onTap: () {
-                      // Navigate to article detail
-                    },
+                  final title = (data['title'] ?? '').toString().toLowerCase();
+                  return title.contains(_searchQuery.toLowerCase());
+                }).toList();
+
+                if (filteredDocs.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text('No news found for "$_searchQuery"', style: GoogleFonts.inter(color: AppColors.navUnselected)),
+                    ),
                   );
-                }).toList(),
-              );
-            },
-          ),
+                }
+
+                return Column(
+                  children: filteredDocs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.article_outlined, color: AppColors.primary),
+                      title: Text(data['title'] ?? 'No Title', 
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                      subtitle: Text(data['category'] ?? ''),
+                      onTap: () {
+                        // Navigate to article detail
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -176,13 +254,13 @@ class _ExploreTabState extends State<ExploreTab> {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
+class _CategoryListItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _CategoryCard({
+  const _CategoryListItem({
     required this.icon,
     required this.label,
     required this.color,
@@ -191,39 +269,31 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell( 
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withAlpha(20),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: color.withAlpha(40)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withAlpha(35),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: color, size: 24),
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
             ),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onBackground,
-              ),
+            child: Icon(icon, color: AppColors.primary, size: 24),
+          ),
+          title: Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onBackground,
             ),
-          ],
+          ),
+          onTap: onTap,
         ),
-      ),
+        const Divider(height: 1, thickness: 1, color: Colors.black12),
+      ],
     );
   }
 }

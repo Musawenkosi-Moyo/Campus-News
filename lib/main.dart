@@ -4,10 +4,8 @@ import 'package:campus_news/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:campus_news/bookmark_provider.dart';
 import 'firebase_options.dart';
-// new imports for kirstybookmark
-import 'package:provider/provider.dart';
-import 'package:campus_news/bookmark_provider.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,13 +24,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  //updated to add a provider
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => BookmarkProvider(),
-      child: const MyApp(),
-    ),
-  );
+  await bookmarkProvider.loadBookmarks();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -1,8 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:campus_news/design/colors.dart';
+import 'package:campus_news/models/article.dart';
+import 'package:campus_news/screens/article_detail_screen.dart';
 
 class CategoryResultsScreen extends StatelessWidget {
   final String category;
@@ -34,7 +37,6 @@ class CategoryResultsScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('articles')
             .where('category', isEqualTo: category)
-            .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -49,15 +51,27 @@ class CategoryResultsScreen extends StatelessWidget {
             return _buildEmptyState();
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(20),
-            itemCount: snapshot.data!.docs.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final doc = snapshot.data!.docs[index];
-              final data = doc.data() as Map<String, dynamic>;
+          final docs = snapshot.data!.docs.toList();
+          
+          // Sort locally to avoid Firebase composite index requirement
+          docs.sort((a, b) {
+            final dataA = a.data() as Map<String, dynamic>;
+            final dataB = b.data() as Map<String, dynamic>;
+            final tA = dataA['timestamp'] as Timestamp?;
+            final tB = dataB['timestamp'] as Timestamp?;
+            if (tA == null && tB == null) return 0;
+            if (tA == null) return 1;
+            if (tB == null) return -1;
+            return tB.compareTo(tA);
+          });
 
-              return _buildNewsCard(context, data);
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final doc = docs[index];
+              final article = Article.fromFirestore(doc);
+              return _buildNewsRow(context, article);
             },
           );
         },
@@ -65,65 +79,94 @@ class CategoryResultsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNewsCard(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  void _openArticleRead(BuildContext context, Article article) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => ArticleDetailScreen(article: article),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Article Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.network(
-              data['imageUrl'] ?? 'https://via.placeholder.com/400x200',
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 180,
-                color: Colors.grey[300],
-                child: const Icon(Icons.broken_image, size: 50),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+    );
+  }
+
+  Widget _buildNewsRow(BuildContext context, Article article) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => _openArticleRead(context, article),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  data['title'] ?? 'No Title',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onBackground,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: article.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: article.imageUrl,
+                            fit: BoxFit.cover,
+                          )
+                        : ColoredBox(
+                            color: Colors.grey.shade300,
+                            child: const Icon(Icons.article_outlined),
+                          ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  data['content'] ?? '',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.navUnselected,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (article.category.isNotEmpty)
+                        Text(
+                          article.category.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      if (article.category.isNotEmpty) const SizedBox(height: 4),
+                      Text(
+                        article.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.25,
+                          color: AppColors.onBackground,
+                        ),
+                      ),
+                      if (article.summary.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          article.summary,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            height: 1.35,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.primary.withAlpha(30),
+        ),
+      ],
     );
   }
 
