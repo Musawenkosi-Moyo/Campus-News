@@ -4,6 +4,7 @@ import 'package:campus_news/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:campus_news/bookmark_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -22,6 +23,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await bookmarkProvider.loadBookmarks();
+
   runApp(const MyApp());
 }
 

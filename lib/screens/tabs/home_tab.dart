@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
 import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:campus_news/bookmark_provider.dart';
 
 void _openArticleRead(BuildContext context, Article article) {
   Navigator.of(context).push<void>(
@@ -277,6 +278,11 @@ class _FeaturedCard extends StatelessWidget {
                 ),
 
                 Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _ArticleBookmarkButton(article: article),
+                ),
+                Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
@@ -408,6 +414,8 @@ class _ArticleCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                _ArticleBookmarkButton(article: article),
               ],
             ),
           ),
@@ -435,6 +443,44 @@ class _ArticleShimmer extends StatelessWidget {
       height: 80,
       margin: const EdgeInsets.only(bottom: 14),
       color: Colors.grey.shade300,
+    );
+  }
+}
+
+class _ArticleBookmarkButton extends StatelessWidget {
+  final Article article;
+
+  const _ArticleBookmarkButton({required this.article});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: bookmarkProvider,
+      builder: (context, _) {
+        final isBookmarked = bookmarkProvider.isBookmarked(article);
+        return IconButton(
+          icon: Icon(
+            isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_outline_rounded,
+            color: isBookmarked ? AppColors.primary : Colors.white,
+          ),
+          style: IconButton.styleFrom(
+            backgroundColor: isBookmarked
+                ? Colors.white
+                : Colors.black.withValues(alpha: 0.35),
+          ),
+          onPressed: () {
+            bookmarkProvider.toggleBookmark(article);
+            final message = isBookmarked
+                ? "Removed from Bookmarks"
+                : "Added to Bookmarks";
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          },
+        );
+      },
     );
   }
 }
