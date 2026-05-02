@@ -8,8 +8,17 @@ import 'package:url_launcher/url_launcher.dart';
 /// Full-screen read view for an [Article] from the home feed.
 class ArticleDetailScreen extends StatelessWidget {
   final Article article;
+  final bool showEditButton;
+  final VoidCallback? onEdit;
+  final Future<void> Function()? onDelete;
 
-  const ArticleDetailScreen({super.key, required this.article});
+  const ArticleDetailScreen({
+    super.key,
+    required this.article,
+    this.showEditButton = false,
+    this.onEdit,
+    this.onDelete,
+  });
 
   String get _body {
     final c = article.content.trim();
@@ -37,10 +46,82 @@ class ArticleDetailScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _confirmDelete(BuildContext context) async {
+    if (onDelete == null) return;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete article?'),
+        content: const Text(
+          'This will permanently remove this article from the database.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      await onDelete!.call();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomNavigationBar: showEditButton
+          ? SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_rounded),
+                      label: const Text('Edit'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _confirmDelete(context),
+                      icon: const Icon(Icons.delete_rounded),
+                      label: const Text('Delete'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : null,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
