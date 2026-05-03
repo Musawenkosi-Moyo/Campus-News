@@ -91,8 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.explore_outlined, size: 26),
-                  activeIcon: Icon(Icons.explore_rounded, size: 26),
+                  icon: Icon(Icons.menu_outlined, size: 26),
+                  activeIcon: Icon(Icons.menu_rounded, size: 26),
                   label: 'Explore',
                 ),
                 BottomNavigationBarItem(

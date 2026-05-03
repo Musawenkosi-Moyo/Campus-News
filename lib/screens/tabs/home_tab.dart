@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
 import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:campus_news/bookmark_provider.dart';
 
 void _openArticleRead(BuildContext context, Article article) {
   Navigator.of(context).push<void>(
@@ -55,7 +56,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   void _startHeadlineRotation() {
     _headlineTimer?.cancel();
-    _headlineTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+    _headlineTimer = Timer.periodic(const Duration(seconds: 7), (_) {
       final controller = _headlineController;
       if (controller == null || !controller.hasClients || _headlineCount <= 1) {
         return;
@@ -94,36 +95,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── APP BAR ─────────────────────────────
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            expandedHeight: 76,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              title: const Text(
-                'Campus News',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.onBackground,
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_outlined),
-                color: AppColors.onBackground,
-              ),
-            ],
-          ),
-
-          // ── CATEGORY CHIPS ───────────────────────
-          SliverToBoxAdapter(child: _CategoryChips()),
-
           // ── MAIN STORY (top) + RECENT LIST ───────
           SliverToBoxAdapter(
             child: StreamBuilder<List<Article>>(
@@ -310,6 +281,11 @@ class _FeaturedCard extends StatelessWidget {
                 ),
 
                 Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _ArticleBookmarkButton(article: article),
+                ),
+                Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
@@ -429,37 +405,54 @@ class _ArticleCard extends StatelessWidget {
                               color: AppColors.primary,
                             ),
                           ),
-                        if (article.category.isNotEmpty)
-                          const SizedBox(height: 4),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (article.category.isNotEmpty)
                         Text(
-                          article.title,
+                          article.category.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      if (article.category.isNotEmpty) const SizedBox(height: 4),
+                      Text(
+                        article.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.25,
+                          color: AppColors.onBackground,
+                        ),
+                      ),
+                      if (article.summary.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          article.summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            height: 1.25,
-                            color: AppColors.onBackground,
+                            fontSize: 13,
+                            height: 1.35,
+                            color: Colors.black54,
                           ),
                         ),
-                        if (article.summary.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            article.summary,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              height: 1.35,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
                       ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                _ArticleBookmarkButton(article: article),
+              ],
             ),
           ),
         ),
@@ -510,9 +503,9 @@ class _Chip extends StatelessWidget {
           color: AppColors.onBackground,
         ),
       ),
-    );
   }
 }
+
 
 // ─────────────────────────────────────────────
 // SHIMMERS (simple placeholders)
@@ -526,6 +519,44 @@ class _ArticleShimmer extends StatelessWidget {
       height: 80,
       margin: const EdgeInsets.only(bottom: 14),
       color: Colors.grey.shade300,
+    );
+  }
+}
+
+class _ArticleBookmarkButton extends StatelessWidget {
+  final Article article;
+
+  const _ArticleBookmarkButton({required this.article});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: bookmarkProvider,
+      builder: (context, _) {
+        final isBookmarked = bookmarkProvider.isBookmarked(article);
+        return IconButton(
+          icon: Icon(
+            isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_outline_rounded,
+            color: isBookmarked ? AppColors.primary : Colors.white,
+          ),
+          style: IconButton.styleFrom(
+            backgroundColor: isBookmarked
+                ? Colors.white
+                : Colors.black.withValues(alpha: 0.35),
+          ),
+          onPressed: () {
+            bookmarkProvider.toggleBookmark(article);
+            final message = isBookmarked
+                ? "Removed from Bookmarks"
+                : "Added to Bookmarks";
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          },
+        );
+      },
     );
   }
 }
