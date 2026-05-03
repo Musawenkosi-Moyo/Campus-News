@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
-import 'package:campus_news/screens/category_results _screen.dart';
+import 'package:campus_news/screens/category_results_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
 

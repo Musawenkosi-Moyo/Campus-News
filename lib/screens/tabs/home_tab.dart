@@ -82,7 +82,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .where((doc) => (doc.data() as Map<String, dynamic>)['isDraft'] != true)
+              .where((doc) => (doc.data())['isDraft'] != true)
               .map((doc) => Article.fromFirestore(doc))
               .toList(),
         );
@@ -259,7 +259,8 @@ class _FeaturedCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                if (article.imageUrl.isNotEmpty && article.imageUrl.startsWith('http'))
+                if (article.imageUrl.isNotEmpty &&
+                    article.imageUrl.startsWith('http'))
                   CachedNetworkImage(
                     imageUrl: article.imageUrl,
                     fit: BoxFit.cover,
@@ -379,7 +380,9 @@ class _ArticleCard extends StatelessWidget {
                     child: SizedBox(
                       width: 80,
                       height: 80,
-                      child: article.imageUrl.isNotEmpty && article.imageUrl.startsWith('http')
+                      child:
+                          article.imageUrl.isNotEmpty &&
+                              article.imageUrl.startsWith('http')
                           ? CachedNetworkImage(
                               imageUrl: article.imageUrl,
                               fit: BoxFit.cover,

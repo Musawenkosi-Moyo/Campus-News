@@ -22,9 +22,11 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
 
   XFile? _selectedImage;
   Uint8List? _selectedImageBytes;
+  FilePickerResult? _selectedPdf;
   String? _selectedCategory;
   bool _isSavingDraft = false;
   bool _isPublishing = false;
+  final bool _isLoading = false;
 
   static const List<String> _categories = [
     'Academics',
@@ -340,7 +342,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
               ),
             const SizedBox(height: 20),
 
-            _buildLabel('Article PDF (Optional)'),
+            buildLabel('Article PDF (Optional)'),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _isLoading ? null : _pickPdf,
@@ -395,12 +397,12 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
             buildLabel('Category'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               style: GoogleFonts.inter(
                 color: AppColors.onBackground,
                 fontSize: 14,
               ),
-              decoration: _inputDecoration('Select a category'),
+              decoration: inputDecoration('Select a category'),
               dropdownColor: Colors.white,
               borderRadius: BorderRadius.circular(16),
               items: _categories
