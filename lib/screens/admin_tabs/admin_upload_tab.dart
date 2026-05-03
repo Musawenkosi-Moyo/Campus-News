@@ -106,23 +106,19 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
       String? imageUrl;
       String? pdfUrl;
       if (_selectedImage != null) {
-        if (isDraft) {
-          imageUrl = _selectedImage!.path;
-        } else {
-          try {
-            imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(e.toString(), style: GoogleFonts.inter()),
-                  backgroundColor: AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-            return;
+        try {
+          imageUrl = await _newsService.uploadPickedImage(_selectedImage!);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString(), style: GoogleFonts.inter()),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           }
+          return;
         }
       }
 
@@ -179,7 +175,7 @@ class _AdminUploadTabState extends State<AdminUploadTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Could not publish article: $e',
+              'Could not save article: $e',
               style: GoogleFonts.inter(),
             ),
             backgroundColor: AppColors.error,

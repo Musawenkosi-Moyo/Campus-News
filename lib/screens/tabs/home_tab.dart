@@ -408,54 +408,39 @@ class _ArticleCard extends StatelessWidget {
                               color: AppColors.primary,
                             ),
                           ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (article.category.isNotEmpty)
+                        if (article.category.isNotEmpty)
+                          const SizedBox(height: 4),
                         Text(
-                          article.category.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.8,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      if (article.category.isNotEmpty) const SizedBox(height: 4),
-                      Text(
-                        article.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          height: 1.25,
-                          color: AppColors.onBackground,
-                        ),
-                      ),
-                      if (article.summary.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          article.summary,
+                          article.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 13,
-                            height: 1.35,
-                            color: Colors.black54,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            height: 1.25,
+                            color: AppColors.onBackground,
                           ),
                         ),
+                        if (article.summary.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            article.summary,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.35,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                _ArticleBookmarkButton(article: article),
-              ],
+                  const SizedBox(width: 8),
+                  _ArticleBookmarkButton(article: article),
+                ],
+              ),
             ),
           ),
         ),
@@ -464,55 +449,6 @@ class _ArticleCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────────────────────────
-class _CategoryChips extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-        children: const [
-          _Chip("All"),
-          _Chip("Events"),
-          _Chip("Sports"),
-          _Chip("Academic"),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  const _Chip(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withAlpha(35)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.onBackground,
-        ),
-      ),
-  }
-}
-
-
-// ─────────────────────────────────────────────
-// SHIMMERS (simple placeholders)
-// ─────────────────────────────────────────────
 class _ArticleShimmer extends StatelessWidget {
   const _ArticleShimmer();
 
@@ -554,9 +490,9 @@ class _ArticleBookmarkButton extends StatelessWidget {
             final message = isBookmarked
                 ? "Removed from Bookmarks"
                 : "Added to Bookmarks";
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
           },
         );
       },

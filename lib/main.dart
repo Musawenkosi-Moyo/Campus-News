@@ -4,7 +4,9 @@ import 'package:campus_news/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:campus_news/services/notification_service.dart';
 import 'package:campus_news/bookmark_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -26,7 +28,10 @@ void main() async {
 
   await bookmarkProvider.loadBookmarks();
 
-  runApp(const MyApp());
+  // Initialize Notification Service
+  await NotificationService().init();
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

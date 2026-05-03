@@ -112,8 +112,10 @@ class _AdminHomeTabState extends State<AdminHomeTab>
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Article.fromFirestore(doc)).toList(),
+          (snapshot) => snapshot.docs
+              .where((doc) => (doc.data())['isDraft'] != true)
+              .map((doc) => Article.fromFirestore(doc))
+              .toList(),
         );
   }
 

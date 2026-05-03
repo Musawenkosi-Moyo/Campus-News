@@ -27,7 +27,8 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
   final NewsService _newsService = NewsService();
   final ImagePicker _picker = ImagePicker();
 
-  File? _selectedImage;
+  /// Newly picked cover (uploaded to Supabase on save/publish, never stored as a local path).
+  XFile? _pickedCover;
   String? _selectedCategory;
   String? _existingImageUrl;
   bool _isSavingDraft = false;
@@ -74,7 +75,7 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
       );
       if (image != null) {
         setState(() {
-          _selectedImage = File(image.path);
+          _pickedCover = image;
         });
       }
     } catch (e) {
@@ -100,22 +101,31 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
     try {
       String? imageUrl = _existingImageUrl;
 
-      if (isDraft) {
-        if (_selectedImage != null) {
-          imageUrl = _selectedImage!.path;
-        }
-      } else {
-        if (_selectedImage != null) {
-          imageUrl = await _newsService.uploadImage(_selectedImage!);
-        } else if (imageUrl != null &&
-            !imageUrl.startsWith('http') &&
-            imageUrl.isNotEmpty) {
-          File localFile = File(imageUrl);
-          if (await localFile.exists()) {
-            imageUrl = await _newsService.uploadImage(localFile);
-          } else {
-            imageUrl = '';
+      if (_pickedCover != null) {
+        try {
+          imageUrl = await _newsService.uploadPickedImage(_pickedCover!);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString(), style: GoogleFonts.inter()),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           }
+          return;
+        }
+      } else if (!isDraft &&
+          imageUrl != null &&
+          !imageUrl.startsWith('http') &&
+          imageUrl.isNotEmpty) {
+        final legacy = XFile(imageUrl);
+        try {
+          await legacy.readAsBytes();
+          imageUrl = await _newsService.uploadPickedImage(legacy);
+        } catch (_) {
+          imageUrl = '';
         }
       }
 
@@ -154,7 +164,10 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: Could not update draft'),
+            content: Text(
+              'Error: Could not update draft: $e',
+              style: GoogleFonts.inter(),
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -211,7 +224,7 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
               const SizedBox(height: 28),
 
               // Image Picker
-              if (_selectedImage == null &&
+              if (_pickedCover == null &&
                   (_existingImageUrl == null || _existingImageUrl!.isEmpty))
                 GestureDetector(
                   onTap: _pickImage,
@@ -276,9 +289,9 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
                           color: AppColors.primary.withAlpha(50),
                           width: 1.0,
                         ),
-                        image: _selectedImage != null
+                        image: _pickedCover != null
                             ? DecorationImage(
-                                image: FileImage(_selectedImage!),
+                                image: FileImage(File(_pickedCover!.path)),
                                 fit: BoxFit.cover,
                               )
                             : DecorationImage(
@@ -312,7 +325,7 @@ class _AdminEditDraftScreenState extends State<AdminEditDraftScreen> {
                         TextButton.icon(
                           onPressed: () {
                             setState(() {
-                              _selectedImage = null;
+                              _pickedCover = null;
                               _existingImageUrl = '';
                             });
                           },
