@@ -5,6 +5,7 @@ import 'package:campus_news/screens/tabs/home_tab.dart';
 import 'package:campus_news/screens/tabs/explore_tab.dart';
 import 'package:campus_news/screens/tabs/bookmark_tab.dart';
 import 'package:campus_news/screens/tabs/settings_tab.dart';
+import 'package:campus_news/screens/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,6 +46,22 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         elevation: 0,
+        actions: _currentIndex == 0
+            ? [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.notifications_outlined),
+                ),
+                const SizedBox(width: 8),
+              ]
+            : null,
       ),
       body: IndexedStack(
         index: _currentIndex,

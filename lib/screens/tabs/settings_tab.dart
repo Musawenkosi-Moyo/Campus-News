@@ -3,6 +3,9 @@ import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:campus_news/screens/login_screen.dart';
+import 'package:campus_news/screens/edit_profile_screen.dart';
+import 'package:campus_news/screens/notifications_screen.dart';
+import 'package:campus_news/screens/help_screen.dart';
 
 class SettingsTab extends StatelessWidget {
   const SettingsTab({super.key});
@@ -19,8 +22,8 @@ class SettingsTab extends StatelessWidget {
   }
 
   void _handleNotifications(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Notification settings coming soon!')),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const NotificationsScreen()),
     );
   }
 
@@ -208,7 +211,9 @@ class SettingsTab extends StatelessWidget {
                 icon: Icons.help_outline_rounded,
                 label: 'Help & FAQ',
                 onTap: () {
-                  // Logic for Help
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const HelpScreen()),
+                  );
                 },
               ),
               _SettingsItem(
@@ -381,28 +386,6 @@ class _SettingsItem extends StatelessWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-      ),
-    );
-  }
-}
-
-class EditProfileScreen extends StatelessWidget {
-  const EditProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Edit Profile",
-          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-        ),
-      ),
-      body: Center(
-        child: Text(
-          "Profile Settings Screen",
-          style: GoogleFonts.inter(fontSize: 16),
-        ),
       ),
     );
   }

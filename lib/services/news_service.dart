@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:campus_news/services/notification_service.dart';
 
 /// Storage bucket in Supabase (create in Dashboard → Storage → New bucket).
 /// Use a **public** bucket if you serve images via [getPublicUrl], or add
@@ -18,6 +19,7 @@ const String kSupabasePdfBucket = 'article-pdf';
 class NewsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   SupabaseClient get _supabase {
     final url = dotenv.env['SUPABASE_URL']?.trim() ?? '';
@@ -192,6 +194,15 @@ class NewsService {
         'isDraft': isDraft,
         'views': 0,
       });
+
+      if (!isDraft) {
+        await _notificationService.createNotification(
+          title: 'New Article: $title',
+          body: 'A new article has been published in $category.',
+          type: 'article',
+          articleId: '', // Ideally we get the ID from the doc reference
+        );
+      }
       return true;
     } catch (e) {
       debugPrint('Error uploading article: $e');
@@ -222,9 +233,18 @@ class NewsService {
       }
 
       await _firestore.collection('articles').doc(id).update(updateData);
+
+      if (!isDraft) {
+        await _notificationService.createNotification(
+          title: 'Update: $title',
+          body: 'An article has been updated in $category.',
+          type: 'article',
+          articleId: id,
+        );
+      }
       return true;
     } catch (e) {
-      print('Error updating article: $e');
+      debugPrint('Error updating article: $e');
       return false;
     }
   }
@@ -235,7 +255,7 @@ class NewsService {
       await _firestore.collection('articles').doc(id).delete();
       return true;
     } catch (e) {
-      print('Error deleting article: $e');
+      debugPrint('Error deleting article: $e');
       return false;
     }
   }

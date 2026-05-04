@@ -43,6 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/build/
+/android/*.txt
+/android/*.hprof
 
 # Environment variables
 .env
+
+# Junk
+.DS_Store
+Thumbs.db
