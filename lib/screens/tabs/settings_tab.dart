@@ -6,6 +6,7 @@ import 'package:campus_news/screens/login_screen.dart';
 import 'package:campus_news/screens/edit_profile_screen.dart';
 import 'package:campus_news/screens/notifications_screen.dart';
 import 'package:campus_news/screens/help_screen.dart';
+import 'package:campus_news/screens/about_screen.dart';
 
 class SettingsTab extends StatelessWidget {
   const SettingsTab({super.key});
@@ -88,69 +89,45 @@ class SettingsTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
         children: [
-          
-          InkWell(
-            onTap: () => _handleEditProfile(context), 
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.primary.withAlpha(20),
+          // Profile Section (Simplified)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            onTap: () => _handleEditProfile(context),
+            leading: CircleAvatar(
+              radius: 28,
+              backgroundColor: AppColors.primary.withAlpha(30),
+              child: Text(
+                (user?.displayName ?? user?.email ?? 'U')
+                    .substring(0, 1)
+                    .toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
                 ),
               ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: AppColors.primary.withAlpha(30),
-                    child: Text(
-                      (user?.displayName ?? user?.email ?? 'U')
-                          .substring(0, 1)
-                          .toUpperCase(),
-                      style: GoogleFonts.inter(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.displayName ?? 'Student',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.onBackground,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          user?.email ?? 'No email',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: AppColors.navUnselected,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.navUnselected,
-                  ),
-                ],
+            ),
+            title: Text(
+              user?.displayName ?? 'Student',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onBackground,
               ),
             ),
+            subtitle: Text(
+              user?.email ?? 'No email',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.navUnselected,
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.navUnselected,
+            ),
           ),
+          const Divider(height: 32, thickness: 1, color: Colors.black12),
           const SizedBox(height: 24),
 
           // Settings sections
@@ -188,11 +165,8 @@ class SettingsTab extends StatelessWidget {
                 icon: Icons.info_outline_rounded,
                 label: 'About',
                 onTap: () {
-                  showAboutDialog(
-                    context: context,
-                    applicationName: 'Campus News',
-                    applicationVersion: '1.0.0',
-                    applicationIcon: const FlutterLogo(),  
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const AboutScreen()),
                   );
                 },
               ),
@@ -201,46 +175,11 @@ class SettingsTab extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Logout
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.error.withAlpha(15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.error.withAlpha(30),
-              ),
-            ),
-            child: ListTile(
-              onTap: () => _logout(context),
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.error.withAlpha(25),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.logout_rounded,
-                  color: AppColors.error,
-                  size: 20,
-                ),
-              ),
-              title: Text(
-                'Logout',
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.error,
-                ),
-              ),
-              trailing: const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.error,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
+          const SizedBox(height: 32),
+          _SettingsItem(
+            icon: Icons.logout_rounded,
+            label: 'Logout',
+            onTap: () => _logout(context),
           ),
           const SizedBox(height: 24),
 
@@ -274,43 +213,18 @@ class _SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          padding: const EdgeInsets.only(left: 0, bottom: 8, top: 16),
           child: Text(
             title,
             style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navUnselected,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
               letterSpacing: 0.5,
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.primary.withAlpha(20),
-            ),
-          ),
-          child: Column(
-            children: items.asMap().entries.map((entry) {
-              final isLast = entry.key == items.length - 1;
-              final item = entry.value;
-              return Column(
-                children: [
-                  item,
-                  if (!isLast)
-                    Divider(
-                      height: 1,
-                      indent: 56,
-                      color: AppColors.primary.withAlpha(15),
-                    ),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
+        ...items,
       ],
     );
   }
@@ -329,32 +243,35 @@ class _SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withAlpha(20),
-          borderRadius: BorderRadius.circular(12),
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          contentPadding: EdgeInsets.zero,
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 24),
+          ),
+          title: Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onBackground,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.navUnselected,
+          ),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
-      ),
-      title: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: AppColors.onBackground,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: AppColors.navUnselected,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+        const Divider(height: 1, thickness: 1, color: Colors.black12),
+      ],
     );
   }
-}
+}
