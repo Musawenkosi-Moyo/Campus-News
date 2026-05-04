@@ -13,6 +13,8 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _aboutController = TextEditingController();
   final _user = FirebaseAuth.instance.currentUser;
   bool _isLoading = false;
@@ -21,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _nameController.text = _user?.displayName ?? '';
+    _emailController.text = _user?.email ?? '';
     _loadUserProfile();
   }
 
@@ -29,12 +32,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
-          .doc(_user.uid)
+          .doc(_user!.uid)
           .get();
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
         setState(() {
-          _nameController.text = data['name'] ?? _user.displayName ?? '';
+          _nameController.text = data['name'] ?? _user!.displayName ?? '';
+          _emailController.text = data['email'] ?? _user!.email ?? '';
+          _phoneController.text = data['phone'] ?? '';
           _aboutController.text = data['about'] ?? '';
         });
       }
@@ -49,12 +54,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // Update Firebase Auth display name
       await _user?.updateDisplayName(_nameController.text.trim());
       
+      // Update email if it changed (Note: May require recent login)
+      if (_user?.email != _emailController.text.trim()) {
+          try {
+            await _user?.verifyBeforeUpdateEmail(_emailController.text.trim());
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('A verification link has been sent to your new email.')),
+              );
+            }
+          } catch(e) {
+            debugPrint('Failed to update email in Auth: $e');
+          }
+      }
+
       // Update Firestore user document
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user?.uid)
           .update({
         'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
         'about': _aboutController.text.trim(),
       });
       
@@ -93,6 +114,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: _nameController,
               label: 'Full Name',
               icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _emailController,
+              label: 'Email Address',
+              icon: Icons.email_outlined,
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _phoneController,
+              label: 'Phone Number',
+              icon: Icons.phone_outlined,
             ),
             const SizedBox(height: 20),
             _buildTextField(

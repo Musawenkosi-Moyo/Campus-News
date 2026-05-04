@@ -27,34 +27,6 @@ class SettingsTab extends StatelessWidget {
     );
   }
 
-  void _handleAppearance(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Select Theme', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.wb_sunny_outlined),
-              title: const Text('Light Mode'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.nightlight_round),
-              title: const Text('Dark Mode'),
-              onTap: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
 
   Future<void> _logout(BuildContext context) async {
@@ -195,11 +167,7 @@ class SettingsTab extends StatelessWidget {
                 label: 'Notifications',
                 onTap: () => _handleNotifications(context), // UPDATED
               ),
-              _SettingsItem(
-                icon: Icons.dark_mode_outlined,
-                label: 'Appearance',
-                onTap: () => _handleAppearance(context), // UPDATED
-              ),
+
             ],
           ),
           const SizedBox(height: 16),
