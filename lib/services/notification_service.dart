@@ -21,9 +21,13 @@ class NotificationService {
     }
 
     // Get token and save to user doc
-    String? token = await _fcm.getToken();
-    if (token != null) {
-      await _saveTokenToFirestore(token);
+    try {
+      String? token = await _fcm.getToken();
+      if (token != null) {
+        await _saveTokenToFirestore(token);
+      }
+    } catch (e) {
+      debugPrint('Failed to get FCM token: $e');
     }
 
     // Listen to token refresh
