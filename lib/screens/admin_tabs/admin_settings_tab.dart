@@ -4,9 +4,25 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:campus_news/screens/login_screen.dart';
 import 'package:campus_news/screens/about_screen.dart';
+import 'package:campus_news/screens/edit_profile_screen.dart';
+import 'package:campus_news/screens/notifications_screen.dart';
+import 'package:campus_news/screens/help_screen.dart';
 
 class AdminSettingsTab extends StatelessWidget {
   const AdminSettingsTab({super.key});
+
+  void _handleEditProfile(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    );
+    (context as Element).markNeedsBuild();
+  }
+
+  void _handleNotifications(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+    );
+  }
 
   Future<void> _logout(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
@@ -70,6 +86,7 @@ class AdminSettingsTab extends StatelessWidget {
           // Profile Section
           ListTile(
             contentPadding: EdgeInsets.zero,
+            onTap: () => _handleEditProfile(context),
             leading: CircleAvatar(
               radius: 28,
               backgroundColor: AppColors.primary.withAlpha(30),
@@ -99,13 +116,44 @@ class AdminSettingsTab extends StatelessWidget {
                 color: AppColors.navUnselected,
               ),
             ),
+            trailing: Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.navUnselected,
+            ),
           ),
           const Divider(height: 32, thickness: 1, color: Colors.black12),
           const SizedBox(height: 24),
 
+          // Settings sections
           _SettingsSection(
-            title: 'Admin Settings',
+            title: 'General',
             items: [
+              _SettingsItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Edit Profile',
+                onTap: () => _handleEditProfile(context),
+              ),
+              _SettingsItem(
+                icon: Icons.notifications_outlined,
+                label: 'Notifications',
+                onTap: () => _handleNotifications(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          _SettingsSection(
+            title: 'Support',
+            items: [
+              _SettingsItem(
+                icon: Icons.help_outline_rounded,
+                label: 'Help & FAQ',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const HelpScreen()),
+                  );
+                },
+              ),
               _SettingsItem(
                 icon: Icons.info_outline_rounded,
                 label: 'About Campus News',
