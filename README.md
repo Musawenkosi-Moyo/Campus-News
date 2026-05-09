@@ -54,14 +54,16 @@ Campus News is a modern, high-performance Flutter application designed to keep s
    - Alternatively, use `flutterfire configure` to automate the setup.
 
 4. **Environment Variables**
-   - Create a `.env` file in the root directory (refer to `.env.example` if available).
-   - Ensure the `.env` file is added to your `pubspec.yaml` assets.
+   - Add the .env file to the folder before running
 
 5. **Run the Application**
    ```bash
    flutter run
    ```
 
+## Accessing admin portal 
+- Use the credential "hazel@admin.nust.ac.zw" password "qwertyuiop"
+- Alternative, signup using email ending with @admin.nust.ac.zw
 
 ## 🤝 Contributing
 
