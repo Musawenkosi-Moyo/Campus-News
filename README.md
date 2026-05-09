@@ -62,9 +62,6 @@ Campus News is a modern, high-performance Flutter application designed to keep s
    flutter run
    ```
 
-## 📸 Screenshots
-
-*(Add screenshots of your app here to showcase the beautiful UI!)*
 
 ## 🤝 Contributing
 
