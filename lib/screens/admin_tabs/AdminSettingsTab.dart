@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
 import 'package:campus_news/screens/LoginScreen.dart';
 import 'package:campus_news/screens/AboutScreen.dart';
 import 'package:campus_news/screens/EditProfileScreen.dart';
 import 'package:campus_news/screens/NotificationsScreen.dart';
 import 'package:campus_news/screens/HelpScreen.dart';
+=======
+import 'package:campus_news/screens/login_screen.dart';
+import 'package:campus_news/screens/about_screen.dart';
+import 'package:campus_news/screens/edit_profile_screen.dart';
+import 'package:campus_news/screens/notifications_screen.dart';
+import 'package:campus_news/screens/help_screen.dart';
+>>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
 
 class AdminSettingsTab extends StatelessWidget {
   const AdminSettingsTab({super.key});
@@ -15,6 +23,10 @@ class AdminSettingsTab extends StatelessWidget {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const EditProfileScreen()),
     );
+<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
+=======
+    (context as Element).markNeedsBuild();
+>>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
   }
 
   void _handleNotifications(BuildContext context) {
@@ -123,8 +135,13 @@ class AdminSettingsTab extends StatelessWidget {
           const Divider(height: 32, thickness: 1, color: Colors.black12),
           const SizedBox(height: 24),
 
+          // Settings sections
           _SettingsSection(
+<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
             title: 'Admin General',
+=======
+            title: 'General',
+>>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
             items: [
               _SettingsItem(
                 icon: Icons.person_outline_rounded,
@@ -136,13 +153,20 @@ class AdminSettingsTab extends StatelessWidget {
                 label: 'Notifications',
                 onTap: () => _handleNotifications(context),
               ),
+<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
 
+=======
+>>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
             ],
           ),
           const SizedBox(height: 16),
 
           _SettingsSection(
+<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
             title: 'Admin Support',
+=======
+            title: 'Support',
+>>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
             items: [
               _SettingsItem(
                 icon: Icons.help_outline_rounded,
