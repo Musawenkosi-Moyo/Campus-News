@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary color (Blue)
-  static const Color primary = Color.fromARGB(255, 3, 73, 144);
+  static const Color primary = Color(0xff001A72);
   static const Color primaryVariant = Color(0xff001A72);
 
   // Secondary color

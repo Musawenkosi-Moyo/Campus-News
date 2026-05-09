@@ -100,35 +100,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Edit Profile', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text('Edit Profile', 
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          )),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
             _buildTextField(
+              context,
               controller: _nameController,
               label: 'Full Name',
               icon: Icons.person_outline,
             ),
             const SizedBox(height: 20),
             _buildTextField(
+              context,
               controller: _emailController,
               label: 'Email Address',
               icon: Icons.email_outlined,
             ),
             const SizedBox(height: 20),
             _buildTextField(
+              context,
               controller: _phoneController,
               label: 'Phone Number',
               icon: Icons.phone_outlined,
             ),
             const SizedBox(height: 20),
             _buildTextField(
+              context,
               controller: _aboutController,
               label: 'About',
               icon: Icons.info_outline,
@@ -141,13 +152,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _updateProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: AppColors.primaryVariant,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? CircularProgressIndicator(color: colorScheme.onPrimary)
                   : Text(
                       'Save Changes', 
                       style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
@@ -160,12 +171,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildTextField(
+    BuildContext context, {
     required TextEditingController controller,
     required String label,
     required IconData icon,
     int maxLines = 1,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -174,32 +189,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.onBackground,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: GoogleFonts.inter(fontSize: 15),
+          style: GoogleFonts.inter(fontSize: 15, color: colorScheme.onBackground),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+            prefixIcon: Icon(icon, color: AppColors.primaryVariant, size: 20),
             hintText: 'Enter $label',
-            hintStyle: GoogleFonts.inter(color: AppColors.navUnselected, fontSize: 14),
+            hintStyle: GoogleFonts.inter(color: colorScheme.onBackground.withAlpha(100), fontSize: 14),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primary.withAlpha(40)),
+              borderSide: const BorderSide(color: AppColors.primaryVariant),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primary.withAlpha(40)),
+              borderSide: const BorderSide(color: AppColors.primaryVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderSide: const BorderSide(color: AppColors.primaryVariant, width: 2),
             ),
           ),
         ),

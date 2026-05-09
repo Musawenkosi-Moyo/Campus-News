@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home_screen.dart';
-import 'admin_dashboard_screen.dart';
-import 'login_screen.dart';
+import 'HomeScreen.dart';
+import 'AdminDashboardScreen.dart';
+import 'LoginScreen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -63,8 +63,8 @@ class _SignupScreenState extends State<SignupScreen> {
       }
 
       // 4. Create user in Firebase Auth
-      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: email, password: password);
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       final uid = credential.user!.uid;
 
@@ -92,7 +92,6 @@ class _SignupScreenState extends State<SignupScreen> {
           (route) => false,
         );
       }
-      
     } on FirebaseAuthException catch (e) {
       String message = 'Registration failed. Please try again.';
       if (e.code == 'email-already-in-use') {
@@ -103,34 +102,37 @@ class _SignupScreenState extends State<SignupScreen> {
         message = 'Please enter a valid email address.';
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Widget _buildFloatingField({
+  Widget _buildFloatingField(
+    BuildContext context, {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withAlpha(40)),
+        border: Border.all(color: AppColors.primaryVariant.withAlpha(40)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withAlpha(15),
+            color: AppColors.primaryVariant.withAlpha(15),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -138,13 +140,13 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
       child: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.black87),
+        style: TextStyle(color: colorScheme.onSurface),
         obscureText: obscureText,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: Colors.black54),
-          prefixIcon: Icon(icon, color: AppColors.primary),
+          hintStyle: TextStyle(color: colorScheme.onSurface.withAlpha(100)),
+          prefixIcon: Icon(icon, color: AppColors.primaryVariant),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -157,11 +159,19 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
-    final topHeight = size.height * 0.25;
+    final topHeight = size.height * 0.30;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -169,9 +179,9 @@ class _SignupScreenState extends State<SignupScreen> {
             Container(
               height: topHeight,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: AppColors.primaryVariant,
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(32.0),
                   bottomRight: Radius.circular(32.0),
                 ),
@@ -193,10 +203,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Image.asset(
-                      'assets/nust.png',
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.asset('assets/nust.png', fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -208,129 +215,143 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     'Create Account',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Sign up with your NUST email to access campus news.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface.withAlpha(150),
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Full Name',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   _buildFloatingField(
+                    context,
                     controller: _nameController,
                     hint: 'Full Name',
                     icon: Icons.person,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'NUST Email Address',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   _buildFloatingField(
+                    context,
                     controller: _emailController,
                     hint: 'NUST Email Address',
                     icon: Icons.email,
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Phone Number',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   _buildFloatingField(
+                    context,
                     controller: _phoneController,
                     hint: 'Phone Number',
                     icon: Icons.phone,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Password',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   _buildFloatingField(
+                    context,
                     controller: _passwordController,
                     hint: 'Password',
                     icon: Icons.lock,
                     obscureText: true,
                   ),
-                  
+
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _registerUser,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
+                      backgroundColor: AppColors.primaryVariant,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: colorScheme.onPrimary,
                               strokeWidth: 2,
                             ),
                           )
                         : const Text(
                             'Sign Up',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         "Already have an account?",
-                        style: TextStyle(color: Colors.black54),
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withAlpha(150),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Login',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.primaryVariant,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

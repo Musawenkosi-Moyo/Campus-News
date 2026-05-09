@@ -9,14 +9,20 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Notifications',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
-        centerTitle: true,
+        elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -25,7 +31,7 @@ class NotificationsScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: AppColors.primaryVariant));
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -36,14 +42,14 @@ class NotificationsScreen extends StatelessWidget {
                   Icon(
                     Icons.notifications_none_rounded,
                     size: 64,
-                    color: AppColors.navUnselected.withAlpha(50),
+                    color: colorScheme.onSurface.withAlpha(50),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No notifications yet',
                     style: GoogleFonts.inter(
                       fontSize: 16,
-                      color: AppColors.navUnselected,
+                      color: colorScheme.onSurface.withAlpha(120),
                     ),
                   ),
                 ],
@@ -66,11 +72,11 @@ class NotificationsScreen extends StatelessWidget {
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(5),
+                      color: Colors.black.withAlpha(theme.brightness == Brightness.dark ? 20 : 5),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -82,12 +88,12 @@ class NotificationsScreen extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(20),
+                      color: AppColors.primaryVariant.withAlpha(20),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       _getIconForType(type),
-                      color: AppColors.primary,
+                      color: AppColors.primaryVariant,
                     ),
                   ),
                   title: Text(
@@ -95,6 +101,7 @@ class NotificationsScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   subtitle: Column(
@@ -105,7 +112,7 @@ class NotificationsScreen extends StatelessWidget {
                         body,
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.black87,
+                          color: colorScheme.onSurface.withAlpha(180),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -113,7 +120,7 @@ class NotificationsScreen extends StatelessWidget {
                         _formatTimestamp(timestamp),
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: AppColors.navUnselected,
+                          color: colorScheme.onSurface.withAlpha(120),
                         ),
                       ),
                     ],

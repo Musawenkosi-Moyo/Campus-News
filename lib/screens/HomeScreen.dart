@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:campus_news/screens/tabs/home_tab.dart';
-import 'package:campus_news/screens/tabs/explore_tab.dart';
-import 'package:campus_news/screens/tabs/bookmark_tab.dart';
-import 'package:campus_news/screens/tabs/settings_tab.dart';
-import 'package:campus_news/screens/notifications_screen.dart';
+import 'package:campus_news/screens/tabs/HomeTab.dart';
+import 'package:campus_news/screens/tabs/ExploreTab.dart';
+import 'package:campus_news/screens/tabs/BookmarkTab.dart';
+import 'package:campus_news/screens/tabs/SettingsTab.dart';
+import 'package:campus_news/screens/NotificationsScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,18 +33,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           _titles[_currentIndex],
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 20,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
         elevation: 0,
         actions: _currentIndex == 0
             ? [
@@ -69,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.navBarBackground,
+          color: colorScheme.surface,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(15),
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              selectedItemColor: AppColors.primary,
+              selectedItemColor: AppColors.primaryVariant,
               unselectedItemColor: AppColors.navUnselected,
               selectedLabelStyle: GoogleFonts.inter(
                 fontSize: 12,

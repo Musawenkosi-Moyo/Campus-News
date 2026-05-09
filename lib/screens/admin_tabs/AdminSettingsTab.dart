@@ -2,11 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:campus_news/screens/login_screen.dart';
-import 'package:campus_news/screens/about_screen.dart';
+import 'package:campus_news/screens/LoginScreen.dart';
+import 'package:campus_news/screens/AboutScreen.dart';
+import 'package:campus_news/screens/EditProfileScreen.dart';
+import 'package:campus_news/screens/NotificationsScreen.dart';
+import 'package:campus_news/screens/HelpScreen.dart';
 
 class AdminSettingsTab extends StatelessWidget {
   const AdminSettingsTab({super.key});
+
+  void _handleEditProfile(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    );
+  }
+
+  void _handleNotifications(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+    );
+  }
 
   Future<void> _logout(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
@@ -70,6 +85,7 @@ class AdminSettingsTab extends StatelessWidget {
           // Profile Section
           ListTile(
             contentPadding: EdgeInsets.zero,
+            onTap: () => _handleEditProfile(context),
             leading: CircleAvatar(
               radius: 28,
               backgroundColor: AppColors.primary.withAlpha(30),
@@ -89,7 +105,7 @@ class AdminSettingsTab extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
             subtitle: Text(
@@ -99,13 +115,44 @@ class AdminSettingsTab extends StatelessWidget {
                 color: AppColors.navUnselected,
               ),
             ),
+            trailing: Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.navUnselected,
+            ),
           ),
           const Divider(height: 32, thickness: 1, color: Colors.black12),
           const SizedBox(height: 24),
 
           _SettingsSection(
-            title: 'Admin Settings',
+            title: 'Admin General',
             items: [
+              _SettingsItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Edit Profile',
+                onTap: () => _handleEditProfile(context),
+              ),
+              _SettingsItem(
+                icon: Icons.notifications_outlined,
+                label: 'Notifications',
+                onTap: () => _handleNotifications(context),
+              ),
+
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          _SettingsSection(
+            title: 'Admin Support',
+            items: [
+              _SettingsItem(
+                icon: Icons.help_outline_rounded,
+                label: 'Help & FAQ',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const HelpScreen()),
+                  );
+                },
+              ),
               _SettingsItem(
                 icon: Icons.info_outline_rounded,
                 label: 'About Campus News',
@@ -175,11 +222,13 @@ class _SettingsItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Widget? trailing;
 
   const _SettingsItem({
     required this.icon,
     required this.label,
     required this.onTap,
+    this.trailing,
   });
 
   @override
@@ -196,22 +245,23 @@ class _SettingsItem extends StatelessWidget {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 24),
+            child: Icon(icon, color: AppColors.primaryVariant, size: 24),
           ),
           title: Text(
             label,
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.onBackground,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
-          trailing: Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.navUnselected,
-          ),
+          trailing: trailing ??
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.navUnselected,
+              ),
         ),
-        const Divider(height: 1, thickness: 1, color: Colors.black12),
+        const Divider(height: 1, thickness: 1),
       ],
     );
   }

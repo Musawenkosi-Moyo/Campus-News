@@ -80,8 +80,11 @@ class ArticleDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       bottomNavigationBar: showEditButton
           ? SafeArea(
               minimum: const EdgeInsets.fromLTRB(16, 10, 16, 12),
@@ -93,7 +96,7 @@ class ArticleDetailScreen extends StatelessWidget {
                       icon: const Icon(Icons.edit_rounded),
                       label: const Text('Edit'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: AppColors.primaryVariant,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -129,12 +132,12 @@ class ArticleDetailScreen extends StatelessWidget {
             SliverAppBar(
               pinned: true,
               expandedHeight: 280,
-              backgroundColor: AppColors.background,
+              backgroundColor: theme.scaffoldBackgroundColor,
               elevation: 0,
               leading: IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.onBackground,
+                  color: colorScheme.onBackground,
                   size: 20,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -166,12 +169,12 @@ class ArticleDetailScreen extends StatelessWidget {
           else
             SliverAppBar(
               pinned: true,
-              backgroundColor: AppColors.background,
+              backgroundColor: theme.scaffoldBackgroundColor,
               elevation: 0,
               leading: IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.onBackground,
+                  color: colorScheme.onBackground,
                   size: 20,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -186,27 +189,27 @@ class ArticleDetailScreen extends StatelessWidget {
                   if (article.category.isNotEmpty)
                     Text(
                       article.category.toUpperCase(),
-                      style: GoogleFonts.dmSans(
+                      style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.1,
-                        color: AppColors.primary,
+                        color: AppColors.primaryVariant,
                       ),
                     ),
                   if (article.category.isNotEmpty) const SizedBox(height: 10),
                   Text(
                     article.title,
-                    style: GoogleFonts.playfairDisplay(
+                    style: GoogleFonts.inter(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onBackground,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     article.timeAgo,
-                    style: GoogleFonts.dmSans(
+                    style: GoogleFonts.inter(
                       fontSize: 13,
                       color: AppColors.navUnselected,
                     ),
@@ -217,24 +220,25 @@ class ArticleDetailScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.primaryVariant.withAlpha(20)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Attached PDF',
-                            style: GoogleFonts.dmSans(
+                            style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.onBackground,
+                              color: colorScheme.onBackground,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             'Open the full article as a PDF or download it to your device.',
-                            style: GoogleFonts.dmSans(
+                            style: GoogleFonts.inter(
                               fontSize: 13,
                               color: AppColors.navUnselected,
                             ),
@@ -251,9 +255,9 @@ class ArticleDetailScreen extends StatelessWidget {
                                   icon: const Icon(Icons.open_in_new_rounded),
                                   label: const Text('Open PDF'),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
+                                    foregroundColor: AppColors.primaryVariant,
                                     side: const BorderSide(
-                                      color: AppColors.primary,
+                                      color: AppColors.primaryVariant,
                                     ),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -271,7 +275,7 @@ class ArticleDetailScreen extends StatelessWidget {
                                   icon: const Icon(Icons.download_rounded),
                                   label: const Text('Download'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
+                                    backgroundColor: AppColors.primaryVariant,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -288,10 +292,10 @@ class ArticleDetailScreen extends StatelessWidget {
                   ],
                   Text(
                     _body.isNotEmpty ? _body : 'No article text yet.',
-                    style: GoogleFonts.dmSans(
+                    style: GoogleFonts.inter(
                       fontSize: 16,
                       height: 1.6,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onBackground,
                     ),
                   ),
                 ],

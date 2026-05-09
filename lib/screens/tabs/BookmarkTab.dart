@@ -3,7 +3,7 @@ import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:campus_news/bookmark_provider.dart';
 import 'package:campus_news/models/article.dart';
-import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:campus_news/screens/ArticleDetailScreen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BookmarkTab extends StatelessWidget {
@@ -12,12 +12,13 @@ class BookmarkTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AnimatedBuilder(
         animation: bookmarkProvider,
         builder: (context, _) {
           final bookmarkedArticles = bookmarkProvider.items;
           return bookmarkedArticles.isEmpty
-              ? _buildEmptyState()
+              ? _buildEmptyState(context)
               : _buildBookmarkList(context, bookmarkedArticles);
         },
       ),
@@ -25,6 +26,9 @@ class BookmarkTab extends StatelessWidget {
   }
 
   Widget _buildBookmarkList(BuildContext context, List<Article> articles) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       itemCount: articles.length,
@@ -57,7 +61,7 @@ class BookmarkTab extends StatelessWidget {
                                 fit: BoxFit.cover,
                               )
                             : ColoredBox(
-                                color: Colors.grey.shade300,
+                                color: colorScheme.surfaceVariant,
                                 child: const Icon(Icons.article_outlined),
                               ),
                       ),
@@ -70,11 +74,11 @@ class BookmarkTab extends StatelessWidget {
                           if (article.category.isNotEmpty)
                             Text(
                               article.category.toUpperCase(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.8,
-                                color: AppColors.primary,
+                                color: AppColors.primaryVariant,
                               ),
                             ),
                           if (article.category.isNotEmpty)
@@ -83,11 +87,11 @@ class BookmarkTab extends StatelessWidget {
                             article.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               height: 1.25,
-                              color: AppColors.onBackground,
+                              color: colorScheme.onBackground,
                             ),
                           ),
                           if (article.summary.isNotEmpty) ...[
@@ -96,10 +100,10 @@ class BookmarkTab extends StatelessWidget {
                               article.summary,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 height: 1.35,
-                                color: Colors.black54,
+                                color: colorScheme.onBackground.withAlpha(160),
                               ),
                             ),
                           ],
@@ -108,9 +112,9 @@ class BookmarkTab extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.bookmark_rounded,
-                        color: AppColors.primary,
+                        color: AppColors.primaryVariant,
                       ),
                       onPressed: () {
                         bookmarkProvider.toggleBookmark(article);
@@ -128,7 +132,7 @@ class BookmarkTab extends StatelessWidget {
             Divider(
               height: 1,
               thickness: 1,
-              color: AppColors.primary.withAlpha(30),
+              color: AppColors.primaryVariant.withAlpha(30),
             ),
           ],
         );
@@ -136,7 +140,9 @@ class BookmarkTab extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -147,13 +153,13 @@ class BookmarkTab extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(20),
+                color: AppColors.primaryVariant.withAlpha(20),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.bookmark_rounded,
                 size: 48,
-                color: AppColors.primary.withAlpha(180),
+                color: AppColors.primaryVariant.withAlpha(180),
               ),
             ),
             const SizedBox(height: 28),
@@ -162,7 +168,7 @@ class BookmarkTab extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: colorScheme.onBackground,
               ),
             ),
             const SizedBox(height: 10),
@@ -184,8 +190,8 @@ class BookmarkTab extends StatelessWidget {
                 style: GoogleFonts.inter(fontWeight: FontWeight.w600),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+                foregroundColor: AppColors.primaryVariant,
+                side: const BorderSide(color: AppColors.primaryVariant),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,

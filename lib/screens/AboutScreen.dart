@@ -7,20 +7,18 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onBackground),
-          onPressed: () => Navigator.pop(context),
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           'About Campus News',
           style: GoogleFonts.inter(
-            color: AppColors.onBackground,
             fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
       ),
@@ -36,13 +34,13 @@ class AboutScreen extends StatelessWidget {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(30),
+                      color: AppColors.primaryVariant.withAlpha(30),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Icon(
                       Icons.newspaper_rounded,
                       size: 50,
-                      color: AppColors.primary,
+                      color: AppColors.primaryVariant,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -51,14 +49,14 @@ class AboutScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     'v1.0.0',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: AppColors.navUnselected,
+                      color: colorScheme.onSurface.withAlpha(150),
                     ),
                   ),
                 ],
@@ -70,7 +68,7 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -79,7 +77,7 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 15,
                 height: 1.6,
-                color: AppColors.onBackground.withAlpha(180),
+                color: colorScheme.onSurface.withAlpha(180),
               ),
             ),
             const SizedBox(height: 24),
@@ -88,26 +86,30 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
             _buildFeatureItem(
+              context,
               Icons.bolt_rounded,
               'Instant Updates',
               'Stay ahead with breaking news and urgent campus notices as they happen.',
             ),
             _buildFeatureItem(
+              context,
               Icons.category_rounded,
               'Diverse Categories',
               'From Academics to Sports and Culture, follow the topics that matter to you.',
             ),
             _buildFeatureItem(
+              context,
               Icons.bookmark_rounded,
               'Bookmarks',
               'Save your favorite articles to read them later, even without an internet connection.',
             ),
             _buildFeatureItem(
+              context,
               Icons.notifications_active_rounded,
               'Smart Notifications',
               'Never miss an update with personalized alerts for new articles.',
@@ -118,7 +120,7 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -127,7 +129,7 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 15,
                 height: 1.6,
-                color: AppColors.onBackground.withAlpha(180),
+                color: colorScheme.onSurface.withAlpha(180),
               ),
             ),
             const SizedBox(height: 60),
@@ -136,7 +138,7 @@ class AboutScreen extends StatelessWidget {
                 '© 2024 Campus News Team',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: AppColors.navUnselected,
+                  color: colorScheme.onSurface.withAlpha(120),
                 ),
               ),
             ),
@@ -146,7 +148,9 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String title, String description) {
+  Widget _buildFeatureItem(BuildContext context, IconData icon, String title, String description) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -155,10 +159,10 @@ class AboutScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(20),
+              color: AppColors.primaryVariant.withAlpha(20),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 20, color: AppColors.primary),
+            child: Icon(icon, size: 20, color: AppColors.primaryVariant),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -170,14 +174,14 @@ class AboutScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.onBackground,
+                    color: colorScheme.onBackground,
                   ),
                 ),
                 Text(
                   description,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: AppColors.navUnselected,
+                    color: colorScheme.onBackground.withAlpha(150),
                   ),
                 ),
               ],

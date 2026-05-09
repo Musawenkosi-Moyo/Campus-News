@@ -7,14 +7,20 @@ class HelpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           'Help & FAQ',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -26,23 +32,27 @@ class HelpScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.onBackground,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 20),
             _buildFAQItem(
+              context,
               'How do I receive notifications?',
               'Make sure you have enabled notifications in your device settings for Campus News. You will receive updates whenever a new article is published.',
             ),
             _buildFAQItem(
+              context,
               'How can I bookmark an article?',
               'Tap the bookmark icon on any article card or detail screen to save it for later. You can find all your saved articles in the Bookmarks tab.',
             ),
             _buildFAQItem(
+              context,
               'Can I contribute news?',
               'Contribution is currently limited to verified admin accounts. If you have news to share, please contact the campus media office.',
             ),
             _buildFAQItem(
+              context,
               'How do I update my profile?',
               'Go to the Settings tab and tap on "Edit Profile". You can update your name and "About" section there.',
             ),
@@ -52,18 +62,18 @@ class HelpScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.onBackground,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(5),
+                    color: Colors.black.withAlpha(theme.brightness == Brightness.dark ? 20 : 5),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -71,11 +81,11 @@ class HelpScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildContactRow(Icons.email_outlined, 'support@nust.ac.zw'),
+                  _buildContactRow(context, Icons.email_outlined, 'support@nust.ac.zw'),
                   const Divider(height: 32),
-                  _buildContactRow(Icons.phone_outlined, '+263 292 282842'),
+                  _buildContactRow(context, Icons.phone_outlined, '+263 292 282842'),
                   const Divider(height: 32),
-                  _buildContactRow(Icons.location_on_outlined, 'NUST Main Campus, Bulawayo'),
+                  _buildContactRow(context, Icons.location_on_outlined, 'NUST Main Campus, Bulawayo'),
                 ],
               ),
             ),
@@ -85,7 +95,9 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFAQItem(String question, String answer) {
+  Widget _buildFAQItem(BuildContext context, String question, String answer) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -96,7 +108,7 @@ class HelpScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+              color: AppColors.primaryVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -104,7 +116,7 @@ class HelpScreen extends StatelessWidget {
             answer,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.black87,
+              color: colorScheme.onSurface.withAlpha(180),
               height: 1.5,
             ),
           ),
@@ -113,17 +125,19 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactRow(IconData icon, String text) {
+  Widget _buildContactRow(BuildContext context, IconData icon, String text) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.primary.withAlpha(15),
+            color: AppColors.primaryVariant.withAlpha(15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: AppColors.primary, size: 20),
+          child: Icon(icon, color: AppColors.primaryVariant, size: 20),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -132,7 +146,7 @@ class HelpScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: AppColors.onBackground,
+              color: colorScheme.onBackground,
             ),
           ),
         ),

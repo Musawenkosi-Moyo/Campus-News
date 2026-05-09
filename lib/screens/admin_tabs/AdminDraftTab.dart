@@ -5,7 +5,7 @@ import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:campus_news/screens/admin_tabs/admin_edit_draft_screen.dart';
+import 'package:campus_news/screens/admin_tabs/AdminEditDraftScreen.dart';
 import 'package:campus_news/services/news_service.dart';
 
 class AdminDraftTab extends StatefulWidget {
@@ -99,18 +99,21 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
           if (_isSelectionMode)
             Container(
-              color: AppColors.primary.withAlpha(20),
+              color: AppColors.primaryVariant.withAlpha(20),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, color: colorScheme.onBackground),
                     onPressed: () {
                       setState(() {
                         _isSelectionMode = false;
@@ -124,6 +127,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: colorScheme.onBackground,
                     ),
                   ),
                   const Spacer(),
@@ -142,8 +146,8 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.primaryVariant),
             );
           }
 
@@ -164,7 +168,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                   Icon(
                     Icons.edit_note_outlined,
                     size: 64,
-                    color: AppColors.primary.withAlpha(100),
+                    color: AppColors.primaryVariant.withAlpha(100),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -172,7 +176,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onBackground,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -202,10 +206,10 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: docs.length,
-            separatorBuilder: (context, index) => const Divider(
+            separatorBuilder: (context, index) => Divider(
               height: 1,
               thickness: 1,
-              color: Color(0xFFEEEEEE),
+              color: colorScheme.onBackground.withAlpha(20),
               indent: 16,
               endIndent: 16,
             ),
@@ -266,7 +270,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                   }
                 },
                 child: Container(
-                  color: isSelected ? AppColors.primary.withAlpha(20) : Colors.transparent,
+                  color: isSelected ? AppColors.primaryVariant.withAlpha(20) : Colors.transparent,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
@@ -279,7 +283,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                           padding: const EdgeInsets.only(right: 12),
                           child: Checkbox(
                             value: isSelected,
-                            activeColor: AppColors.primary,
+                            activeColor: AppColors.primaryVariant,
                             onChanged: (bool? value) {
                               _toggleSelection(docs[index].id);
                             },
@@ -297,7 +301,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                     placeholder: (context, url) => Container(
                                       width: 90,
                                       height: 90,
-                                      color: AppColors.primary.withAlpha(30),
+                                      color: AppColors.primaryVariant.withAlpha(30),
                                       child: const Center(
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
@@ -307,10 +311,10 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                     errorWidget: (context, url, error) => Container(
                                       width: 90,
                                       height: 90,
-                                      color: AppColors.primary.withAlpha(30),
+                                      color: AppColors.primaryVariant.withAlpha(30),
                                       child: Icon(
                                         Icons.image_not_supported_outlined,
-                                        color: AppColors.primary.withAlpha(100),
+                                        color: AppColors.primaryVariant.withAlpha(100),
                                       ),
                                     ),
                                   )
@@ -322,20 +326,20 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                     errorBuilder: (context, error, stackTrace) => Container(
                                       width: 90,
                                       height: 90,
-                                      color: AppColors.primary.withAlpha(30),
+                                      color: AppColors.primaryVariant.withAlpha(30),
                                       child: Icon(
                                         Icons.image_not_supported_outlined,
-                                        color: AppColors.primary.withAlpha(100),
+                                        color: AppColors.primaryVariant.withAlpha(100),
                                       ),
                                     ),
                                   ))
                             : Container(
                                 width: 90,
                                 height: 90,
-                                color: AppColors.primary.withAlpha(30),
+                                color: AppColors.primaryVariant.withAlpha(30),
                                 child: Icon(
                                   Icons.edit_document,
-                                  color: AppColors.primary.withAlpha(100),
+                                  color: AppColors.primaryVariant.withAlpha(100),
                                   size: 32,
                                 ),
                               ),
@@ -357,7 +361,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      color: Colors.black87,
+                                      color: colorScheme.onBackground,
                                       height: 1.2,
                                     ),
                                   ),
@@ -454,10 +458,10 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                       value: 'edit',
                                       child: Row(
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.edit,
                                             size: 20,
-                                            color: AppColors.primary,
+                                            color: AppColors.primaryVariant,
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
@@ -490,7 +494,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                   child: Icon(
                                     Icons.more_vert,
                                     size: 20,
-                                    color: Colors.grey.shade400,
+                                    color: colorScheme.onBackground.withAlpha(100),
                                   ),
                                 ),
                               ],
@@ -503,7 +507,7 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.inter(
                                 fontSize: 13,
-                                color: Colors.grey.shade600,
+                                color: colorScheme.onBackground.withAlpha(160),
                                 height: 1.4,
                               ),
                             ),
@@ -516,14 +520,14 @@ class _AdminDraftTabState extends State<AdminDraftTab> {
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.primary,
+                                    color: AppColors.primaryVariant,
                                   ),
                                 ),
                                 Text(
                                   '  •  $dateText',
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    color: Colors.grey.shade500,
+                                    color: colorScheme.onBackground.withAlpha(120),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

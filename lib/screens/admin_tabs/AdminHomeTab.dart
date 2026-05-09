@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
-import 'package:campus_news/screens/admin_tabs/admin_edit_article_screen.dart';
-import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:campus_news/screens/admin_tabs/AdminEditArticleScreen.dart';
+import 'package:campus_news/screens/ArticleDetailScreen.dart';
 
 void _openAdminArticleRead(BuildContext context, Article article) {
   Navigator.of(context).push<void>(
@@ -121,6 +121,9 @@ class _AdminHomeTabState extends State<AdminHomeTab>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: CustomScrollView(
@@ -133,14 +136,14 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 if (!snapshot.hasData) {
                   return Column(
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                         child: SizedBox(
                           height: 220,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: Color(0xFFE8E8E8),
-                              borderRadius: BorderRadius.all(
+                              color: colorScheme.surfaceVariant,
+                              borderRadius: const BorderRadius.all(
                                 Radius.circular(20),
                               ),
                             ),
@@ -161,9 +164,12 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 final articles = snapshot.data!;
 
                 if (articles.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text("No articles found"),
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      "No articles found",
+                      style: TextStyle(color: colorScheme.onBackground),
+                    ),
                   );
                 }
 
@@ -177,14 +183,14 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Text(
                         'Headlines',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.onBackground,
+                          color: colorScheme.onBackground,
                         ),
                       ),
                     ),
@@ -224,22 +230,22 @@ class _AdminHomeTabState extends State<AdminHomeTab>
                               height: 8,
                               decoration: BoxDecoration(
                                 color: index == _headlineIndex
-                                    ? AppColors.primary
-                                    : AppColors.primary.withAlpha(70),
+                                    ? AppColors.primaryVariant
+                                    : AppColors.primaryVariant.withAlpha(70),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                       child: Text(
                         'Recent Updates',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.onBackground,
+                          color: colorScheme.onBackground,
                         ),
                       ),
                     ),
@@ -369,6 +375,9 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       children: [
         InkWell(
@@ -390,7 +399,7 @@ class _ArticleCard extends StatelessWidget {
                             fit: BoxFit.cover,
                           )
                         : ColoredBox(
-                            color: Colors.grey.shade300,
+                            color: colorScheme.surfaceVariant,
                             child: const Icon(Icons.article_outlined),
                           ),
                   ),
@@ -403,11 +412,11 @@ class _ArticleCard extends StatelessWidget {
                       if (article.category.isNotEmpty)
                         Text(
                           article.category.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
-                            color: AppColors.primary,
+                            color: AppColors.primaryVariant,
                           ),
                         ),
                       if (article.category.isNotEmpty) const SizedBox(height: 4),
@@ -415,11 +424,11 @@ class _ArticleCard extends StatelessWidget {
                         article.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           height: 1.25,
-                          color: AppColors.onBackground,
+                          color: colorScheme.onBackground,
                         ),
                       ),
                       if (article.summary.isNotEmpty) ...[
@@ -428,10 +437,10 @@ class _ArticleCard extends StatelessWidget {
                           article.summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             height: 1.35,
-                            color: Colors.black54,
+                            color: colorScheme.onBackground.withAlpha(160),
                           ),
                         ),
                       ],
@@ -445,7 +454,7 @@ class _ArticleCard extends StatelessWidget {
         Divider(
           height: 1,
           thickness: 1,
-          color: AppColors.primary.withAlpha(30),
+          color: AppColors.primaryVariant.withAlpha(30),
         ),
       ],
     );
@@ -460,7 +469,10 @@ class _ArticleShimmer extends StatelessWidget {
     return Container(
       height: 80,
       margin: const EdgeInsets.only(bottom: 14),
-      color: Colors.grey.shade300,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
     );
   }
 }

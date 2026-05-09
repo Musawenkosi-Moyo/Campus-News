@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
-import 'package:campus_news/screens/category_results_screen.dart';
+import 'package:campus_news/screens/CategoryResultsScreen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
 
-class ExploreTab extends StatefulWidget {
-  const ExploreTab({super.key});
+class AdminCategoryTab extends StatefulWidget {
+  const AdminCategoryTab({super.key});
 
   @override
-  State<ExploreTab> createState() => _ExploreTabState();
+  State<AdminCategoryTab> createState() => _AdminCategoryTabState();
 }
 
-class _ExploreTabState extends State<ExploreTab> {
+class _AdminCategoryTabState extends State<AdminCategoryTab> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
 
@@ -27,6 +27,9 @@ class _ExploreTabState extends State<ExploreTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Column(
@@ -38,7 +41,7 @@ class _ExploreTabState extends State<ExploreTab> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.primary.withAlpha(100),
+                color: AppColors.primaryVariant.withAlpha(100),
               ),
             ),
             child: Row(
@@ -53,6 +56,7 @@ class _ExploreTabState extends State<ExploreTab> {
                         _searchQuery = value.trim();
                       });
                     },
+                    style: TextStyle(color: colorScheme.onBackground),
                     decoration: InputDecoration(
                       hintText: 'Search campus news...',
                       hintStyle: GoogleFonts.inter(
@@ -75,7 +79,7 @@ class _ExploreTabState extends State<ExploreTab> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.onBackground,
+              color: colorScheme.onBackground,
             ),
           ),
           const SizedBox(height: 16),
@@ -146,7 +150,7 @@ class _ExploreTabState extends State<ExploreTab> {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: colorScheme.onBackground,
               ),
             ),
             const SizedBox(height: 14),
@@ -177,8 +181,12 @@ class _ExploreTabState extends State<ExploreTab> {
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.trending_up, color: Colors.redAccent),
                       title: Text(data['title'] ?? 'No Title', 
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
-                      subtitle: Text("${data['views']} students reading"),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onBackground,
+                        )),
+                      subtitle: Text("${data['views']} students reading",
+                        style: TextStyle(color: colorScheme.onBackground.withAlpha(150))),
                       onTap: () {
                         // Navigate to article detail
                       },
@@ -193,7 +201,7 @@ class _ExploreTabState extends State<ExploreTab> {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onBackground,
+                color: colorScheme.onBackground,
               ),
             ),
             const SizedBox(height: 14),
@@ -218,7 +226,8 @@ class _ExploreTabState extends State<ExploreTab> {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
-                      child: Text('No news found for "$_searchQuery"', style: GoogleFonts.inter(color: AppColors.navUnselected)),
+                      child: Text('No news found for "$_searchQuery"', 
+                        style: GoogleFonts.inter(color: AppColors.navUnselected)),
                     ),
                   );
                 }
@@ -228,10 +237,14 @@ class _ExploreTabState extends State<ExploreTab> {
                     final data = doc.data() as Map<String, dynamic>;
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.article_outlined, color: AppColors.primary),
+                      leading: Icon(Icons.article_outlined, color: AppColors.primaryVariant),
                       title: Text(data['title'] ?? 'No Title', 
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
-                      subtitle: Text(data['category'] ?? ''),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onBackground,
+                        )),
+                      subtitle: Text(data['category'] ?? '',
+                        style: TextStyle(color: colorScheme.onBackground.withAlpha(150))),
                       onTap: () {
                         // Navigate to article detail
                       },
@@ -275,6 +288,8 @@ class _CategoryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         ListTile(
@@ -286,14 +301,14 @@ class _CategoryListItem extends StatelessWidget {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 24),
+            child: Icon(icon, color: AppColors.primaryVariant, size: 24),
           ),
           title: Text(
             label,
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.onBackground,
+              color: colorScheme.onBackground,
             ),
           ),
           onTap: onTap,

@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
-import 'package:campus_news/screens/article_detail_screen.dart';
+import 'package:campus_news/screens/ArticleDetailScreen.dart';
 
 class CategoryResultsScreen extends StatelessWidget {
   final String category;
@@ -13,26 +13,20 @@ class CategoryResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.onBackground,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           category,
           style: GoogleFonts.inter(
-            color: AppColors.onBackground,
+            color: Colors.white,
             fontWeight: FontWeight.w700,
           ),
         ),
-        centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -42,12 +36,13 @@ class CategoryResultsScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(
-              child: Text('Something went wrong', style: GoogleFonts.inter()),
+              child: Text('Something went wrong', 
+                style: GoogleFonts.inter(color: colorScheme.onSurface)),
             );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: AppColors.primaryVariant));
           }
 
           final filteredDocs = snapshot.data!.docs
@@ -55,7 +50,7 @@ class CategoryResultsScreen extends StatelessWidget {
               .toList();
 
           if (filteredDocs.isEmpty) {
-            return _buildEmptyState();
+            return _buildEmptyState(context);
           }
 
           final docs = snapshot.data!.docs
@@ -63,7 +58,7 @@ class CategoryResultsScreen extends StatelessWidget {
               .toList();
 
           if (docs.isEmpty) {
-            return _buildEmptyState();
+            return _buildEmptyState(context);
           }
 
           // Sort locally to avoid Firebase composite index requirement
@@ -101,6 +96,8 @@ class CategoryResultsScreen extends StatelessWidget {
   }
 
   Widget _buildNewsRow(BuildContext context, Article article) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         InkWell(
@@ -121,9 +118,9 @@ class CategoryResultsScreen extends StatelessWidget {
                             imageUrl: article.imageUrl,
                             fit: BoxFit.cover,
                           )
-                        : ColoredBox(
-                            color: Colors.grey.shade300,
-                            child: const Icon(Icons.article_outlined),
+                        : Container(
+                            color: colorScheme.surfaceContainerHighest,
+                            child: Icon(Icons.article_outlined, color: colorScheme.onSurfaceVariant),
                           ),
                   ),
                 ),
@@ -135,11 +132,11 @@ class CategoryResultsScreen extends StatelessWidget {
                       if (article.category.isNotEmpty)
                         Text(
                           article.category.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
-                            color: AppColors.primary,
+                            color: AppColors.primaryVariant,
                           ),
                         ),
                       if (article.category.isNotEmpty) const SizedBox(height: 4),
@@ -147,11 +144,11 @@ class CategoryResultsScreen extends StatelessWidget {
                         article.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           height: 1.25,
-                          color: AppColors.onBackground,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       if (article.summary.isNotEmpty) ...[
@@ -160,10 +157,10 @@ class CategoryResultsScreen extends StatelessWidget {
                           article.summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             height: 1.35,
-                            color: Colors.black54,
+                            color: colorScheme.onSurface.withAlpha(150),
                           ),
                         ),
                       ],
@@ -177,13 +174,14 @@ class CategoryResultsScreen extends StatelessWidget {
         Divider(
           height: 1,
           thickness: 1,
-          color: AppColors.primary.withAlpha(30),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -191,14 +189,14 @@ class CategoryResultsScreen extends StatelessWidget {
           Icon(
             Icons.newspaper_rounded,
             size: 64,
-            color: AppColors.navUnselected.withValues(alpha: 0.5),
+            color: colorScheme.onBackground.withAlpha(50),
           ),
           const SizedBox(height: 16),
           Text(
             'No news in $category yet.',
             style: GoogleFonts.inter(
               fontSize: 16,
-              color: AppColors.navUnselected,
+              color: colorScheme.onBackground.withAlpha(120),
             ),
           ),
         ],

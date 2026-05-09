@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home_screen.dart';
-import 'signup_screen.dart';
-import 'admin_dashboard_screen.dart';
+import 'HomeScreen.dart';
+import 'SignupScreen.dart';
+import 'AdminDashboardScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -100,11 +100,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
-    final topHeight = size.height * 0.30;
+    final topHeight = size.height * 0.35;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -112,9 +116,9 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               height: topHeight,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: AppColors.primaryVariant,
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(32.0),
                   bottomRight: Radius.circular(32.0),
                 ),
@@ -136,10 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Image.asset(
-                      'assets/nust.png',
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.asset('assets/nust.png', fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -154,39 +155,44 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     'Welcome',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Sign in with your campus credentials.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withAlpha(150),
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Email',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.primary.withAlpha(40)),
+                      border: Border.all(
+                        color: AppColors.primaryVariant.withAlpha(40),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withAlpha(15),
+                          color: AppColors.primaryVariant.withAlpha(15),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -194,13 +200,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: TextField(
                       controller: _emailController,
-                      style: const TextStyle(color: Colors.black87),
+                      style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: 'Email',
-                        hintStyle: const TextStyle(color: Colors.black54),
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: colorScheme.onSurface.withAlpha(100),
+                        ),
+                        prefixIcon: Icon(
                           Icons.email,
-                          color: AppColors.primary,
+                          color: AppColors.primaryVariant,
                         ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
@@ -212,23 +220,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Password',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.primary.withAlpha(40)),
+                      border: Border.all(
+                        color: AppColors.primaryVariant.withAlpha(40),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withAlpha(15),
+                          color: AppColors.primaryVariant.withAlpha(15),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -236,13 +246,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: TextField(
                       controller: _passwordController,
-                      style: const TextStyle(color: Colors.black87),
+                      style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: 'Password',
-                        hintStyle: const TextStyle(color: Colors.black54),
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: colorScheme.onSurface.withAlpha(100),
+                        ),
+                        prefixIcon: Icon(
                           Icons.lock,
-                          color: AppColors.primary,
+                          color: AppColors.primaryVariant,
                         ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
@@ -257,19 +269,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
+                      backgroundColor: AppColors.primaryVariant,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: colorScheme.onPrimary,
                               strokeWidth: 2,
                             ),
                           )
@@ -285,9 +297,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         "Don't have an account?",
-                        style: TextStyle(color: Colors.black54),
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withAlpha(150),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
@@ -298,10 +312,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Sign Up',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.primaryVariant,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
