@@ -2,31 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:campus_news/design/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
 import 'package:campus_news/screens/LoginScreen.dart';
 import 'package:campus_news/screens/AboutScreen.dart';
 import 'package:campus_news/screens/EditProfileScreen.dart';
 import 'package:campus_news/screens/NotificationsScreen.dart';
 import 'package:campus_news/screens/HelpScreen.dart';
-=======
-import 'package:campus_news/screens/login_screen.dart';
-import 'package:campus_news/screens/about_screen.dart';
-import 'package:campus_news/screens/edit_profile_screen.dart';
-import 'package:campus_news/screens/notifications_screen.dart';
-import 'package:campus_news/screens/help_screen.dart';
->>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
 
 class AdminSettingsTab extends StatelessWidget {
   const AdminSettingsTab({super.key});
 
   void _handleEditProfile(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-    );
-<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
-=======
-    (context as Element).markNeedsBuild();
->>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const EditProfileScreen()));
   }
 
   void _handleNotifications(BuildContext context) {
@@ -39,9 +27,7 @@ class AdminSettingsTab extends StatelessWidget {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Logout',
           style: GoogleFonts.inter(fontWeight: FontWeight.w700),
@@ -137,11 +123,7 @@ class AdminSettingsTab extends StatelessWidget {
 
           // Settings sections
           _SettingsSection(
-<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
-            title: 'Admin General',
-=======
             title: 'General',
->>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
             items: [
               _SettingsItem(
                 icon: Icons.person_outline_rounded,
@@ -153,20 +135,29 @@ class AdminSettingsTab extends StatelessWidget {
                 label: 'Notifications',
                 onTap: () => _handleNotifications(context),
               ),
-<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
-
-=======
->>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
             ],
           ),
           const SizedBox(height: 16),
 
           _SettingsSection(
-<<<<<<< HEAD:lib/screens/admin_tabs/AdminSettingsTab.dart
+            title: 'Admin General',
+            items: [
+              _SettingsItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Edit Profile',
+                onTap: () => _handleEditProfile(context),
+              ),
+              _SettingsItem(
+                icon: Icons.notifications_outlined,
+                label: 'Notifications',
+                onTap: () => _handleNotifications(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          _SettingsSection(
             title: 'Admin Support',
-=======
-            title: 'Support',
->>>>>>> a1589c5bf7713b355f7bb7237b33747d2b4f90eb:lib/screens/admin_tabs/admin_settings_tab.dart
             items: [
               _SettingsItem(
                 icon: Icons.help_outline_rounded,
@@ -182,7 +173,9 @@ class AdminSettingsTab extends StatelessWidget {
                 label: 'About Campus News',
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const AboutScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const AboutScreen(),
+                    ),
                   );
                 },
               ),
@@ -196,7 +189,7 @@ class AdminSettingsTab extends StatelessWidget {
             onTap: () => _logout(context),
           ),
           const SizedBox(height: 24),
-          
+
           Text(
             'Campus News Admin v1.0.0',
             style: GoogleFonts.inter(
@@ -214,10 +207,7 @@ class _SettingsSection extends StatelessWidget {
   final String title;
   final List<_SettingsItem> items;
 
-  const _SettingsSection({
-    required this.title,
-    required this.items,
-  });
+  const _SettingsSection({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -279,11 +269,9 @@ class _SettingsItem extends StatelessWidget {
               color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
-          trailing: trailing ??
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.navUnselected,
-              ),
+          trailing:
+              trailing ??
+              Icon(Icons.chevron_right_rounded, color: AppColors.navUnselected),
         ),
         const Divider(height: 1, thickness: 1),
       ],
