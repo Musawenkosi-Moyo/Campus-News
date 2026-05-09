@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'HomeScreen.dart';
 import 'AdminDashboardScreen.dart';
 import 'LoginScreen.dart';
+import 'package:campus_news/services/auth_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -35,7 +37,6 @@ class _SignupScreenState extends State<SignupScreen> {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
 
-    // 1. Basic validation
     if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields.')),
@@ -43,7 +44,6 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // 2. Domain validation
     if (!email.toLowerCase().endsWith('.nust.ac.zw')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your NUST email...')),
@@ -54,21 +54,18 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 3. Determine role based on domain
-      String role = 'user';
-      if (email.toLowerCase().endsWith('@admin.nust.ac.zw')) {
-        role = 'admin';
-      } else if (email.toLowerCase().endsWith('@students.nust.ac.zw')) {
-        role = 'user';
-      }
-
-      // 4. Create user in Firebase Auth
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
       final uid = credential.user!.uid;
 
-      // 5. Save profile to Firestore
+      String role = 'user';
+      if (email.toLowerCase().endsWith('@admin.nust.ac.zw')) {
+        role = 'admin';
+      }
+
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'name': name,
@@ -80,16 +77,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      // 6. Redirect based on role
       if (role == 'admin') {
-        Navigator.of(context).pushAndRemoveUntil(
+        Navigator.pushReplacement(
+          context,
           MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-          (route) => false,
         );
       } else {
-        Navigator.of(context).pushAndRemoveUntil(
+        Navigator.pushReplacement(
+          context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -175,7 +171,6 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top part with logo
             Container(
               height: topHeight,
               width: double.infinity,
@@ -209,7 +204,6 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ),
 
-            // Form part
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -357,6 +351,56 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(thickness: 1, color: colorScheme.onSurface.withAlpha(50))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('or Sign in with', style: TextStyle(color: colorScheme.onSurface.withAlpha(150))),
+                      ),
+                      Expanded(child: Divider(thickness: 1, color: colorScheme.onSurface.withAlpha(50))),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: InkWell(
+                      onTap: _isLoading ? null : () async {
+                        try {
+                          final role = await AuthService().signInWithGoogle();
+                          if (!mounted) return;
+                          final navigator = Navigator.of(context);
+                          if (role == 'admin') {
+                            navigator.pushReplacement(
+                              MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                            );
+                          } else {
+                            navigator.pushReplacement(
+                              MaterialPageRoute(builder: (_) => const HomeScreen()),
+                            );
+                          }
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString())),
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: colorScheme.onSurface.withAlpha(30)),
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/google.svg',
+                          height: 24,
+                          width: 24,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

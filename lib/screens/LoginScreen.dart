@@ -4,8 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'HomeScreen.dart';
 import 'SignupScreen.dart';
+import 'ForgotPasswordScreen.dart';
 import 'AdminDashboardScreen.dart';
-
+import 'package:campus_news/services/auth_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -39,7 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Authenticate
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -47,7 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final uid = credential.user!.uid;
 
-      // 2. Fetch role from Firestore
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
@@ -61,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      // 3. Redirect based on role
       if (role == 'admin') {
         Navigator.pushReplacement(
           context,
@@ -112,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top part with overlapping logo
             Container(
               height: topHeight,
               width: double.infinity,
@@ -146,7 +144,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // Bottom part with form
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 24.0,
@@ -265,7 +262,33 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: true,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen(),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(50, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: AppColors.primaryVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
@@ -321,6 +344,56 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(thickness: 1, color: colorScheme.onSurface.withAlpha(50))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('or Sign in with', style: TextStyle(color: colorScheme.onSurface.withAlpha(150))),
+                      ),
+                      Expanded(child: Divider(thickness: 1, color: colorScheme.onSurface.withAlpha(50))),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: InkWell(
+                      onTap: _isLoading ? null : () async {
+                        try {
+                          final role = await AuthService().signInWithGoogle();
+                          if (!mounted) return;
+                          final navigator = Navigator.of(context);
+                          if (role == 'admin') {
+                            navigator.pushReplacement(
+                              MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                            );
+                          } else {
+                            navigator.pushReplacement(
+                              MaterialPageRoute(builder: (_) => const HomeScreen()),
+                            );
+                          }
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString())),
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: colorScheme.onSurface.withAlpha(30)),
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/google.svg',
+                          height: 24,
+                          width: 24,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

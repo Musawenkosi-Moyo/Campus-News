@@ -98,6 +98,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _changePassword() async {
+    if (_user?.email == null) return;
+    
+    // Show confirmation dialog
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Change Password', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        content: Text('Would you like us to send a password reset link to ${_user!.email}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryVariant,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Send Link'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: _user!.email!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset link sent! Check your email.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -163,6 +213,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       'Save Changes', 
                       style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: _isLoading ? null : _changePassword,
+              icon: const Icon(Icons.lock_reset, color: AppColors.primaryVariant),
+              label: Text(
+                'Change Password',
+                style: GoogleFonts.inter(
+                  color: AppColors.primaryVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ],

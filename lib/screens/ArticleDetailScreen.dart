@@ -5,7 +5,6 @@ import 'package:campus_news/design/colors.dart';
 import 'package:campus_news/models/article.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Full-screen read view for an [Article] from the home feed.
 class ArticleDetailScreen extends StatelessWidget {
   final Article article;
   final bool showEditButton;
@@ -82,6 +81,7 @@ class ArticleDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final body = _body;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
