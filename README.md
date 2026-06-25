@@ -1,8 +1,8 @@
-# Campus News 📰
+# Campus News 
 
 Campus News is a modern, high-performance Flutter application designed to keep students informed and connected. It serves as a centralized hub for real-time campus updates, academic news, events, and culture.
 
-## ✨ Features
+## Features
 
 ### For Students
 - **Real-time News Feed**: Stay updated with the latest articles and breaking news.
@@ -18,7 +18,7 @@ Campus News is a modern, high-performance Flutter application designed to keep s
 - **Draft System**: Save your work as drafts and publish when ready.
 - **System Settings**: Configure application parameters and manage the admin profile.
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Frontend**: [Flutter](https://flutter.dev/) (3.x)
 - **State Management**: [Riverpod](https://riverpod.dev/) with [Flutter Hooks](https://pub.dev/packages/flutter_hooks)
@@ -29,7 +29,7 @@ Campus News is a modern, high-performance Flutter application designed to keep s
 - **Navigation**: [GoRouter](https://pub.dev/packages/go_router)
 - **Styling**: Google Fonts (Inter), Custom Design System.
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
@@ -65,10 +65,10 @@ Campus News is a modern, high-performance Flutter application designed to keep s
 - Use the credential "hazel@admin.nust.ac.zw" password "qwertyuiop"
 - Alternative, signup using email ending with @admin.nust.ac.zw
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or open an issue for any bugs or feature requests.
 
-## 📄 License
+##License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
